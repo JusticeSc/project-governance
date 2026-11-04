@@ -6,22 +6,12 @@
 import { createHash } from 'node:crypto'
 import { isDeepStrictEqual } from 'node:util'
 
-/** Recorded reader promise for explicitly attributed source additions. */
-export interface SourceCompatibility {
-  readonly version: 1
-  readonly policy: 'session-source-attribution'
-  readonly binding: 'session.user-message.source' | 'session.developer-message.source'
-  readonly discriminator: 'kind'
-  readonly unknownKinds: 'preserve'
-  readonly attributionKinds: readonly string[]
-}
 
 /** One JSON property, with absence represented independently of its value type. */
 export interface SchemaProperty {
   readonly name: string
   readonly type: number
   readonly optional: boolean
-  readonly compatibility?: SourceCompatibility
 }
 
 /** One positional tuple element. */
@@ -50,9 +40,9 @@ export interface CanonicalSchema {
 /** One independently tracked persistent record vocabulary. */
 export interface PersistenceRoot {
   readonly key: string
-  readonly kind: 'header' | 'envelope' | 'event'
-  readonly event?: string
-  readonly surface?: boolean
+  readonly kind: 'header'
+  /** Explicit root-object property owning this record's version; omission makes no version promise. */
+  readonly versionField?: string
   readonly digest: string
   readonly schema: CanonicalSchema
 }
@@ -67,7 +57,7 @@ export interface PersistenceType {
 
 /** Complete current-source persistence inventory; version pins normalization too. */
 export interface PersistenceSchemaInventory {
-  readonly formatVersion: 1 | 2
+  readonly formatVersion: 1
   readonly roots: readonly PersistenceRoot[]
   readonly types: readonly PersistenceType[]
 }
@@ -144,13 +134,7 @@ function mapNode(node: SchemaNode, ref: (id: number) => number): SchemaNode {
     case 'object': return {
       kind: 'object',
       properties: [...node.properties].sort((left, right) => compare(left.name, right.name))
-        .map(property => ({ name: property.name, type: ref(property.type), optional: property.optional,
-          ...(property.compatibility === undefined ? {} : { compatibility: {
-            version: property.compatibility.version, policy: property.compatibility.policy, binding: property.compatibility.binding,
-            discriminator: property.compatibility.discriminator, unknownKinds: property.compatibility.unknownKinds,
-            attributionKinds: [...new Set(property.compatibility.attributionKinds)].sort(compare),
-          } }),
-        })),
+        .map(property => ({ name: property.name, type: ref(property.type), optional: property.optional })),
       indices: node.indices.map(index => ({ key: ref(index.key), value: ref(index.value) }))
         .sort((left, right) => left.key - right.key || left.value - right.value),
     }
@@ -274,23 +258,12 @@ function normalizeUnions(input: readonly SchemaNode[]): SchemaNode[] {
   return result
 }
 
-/**
- * Compute the versioned SHA-256 fingerprint of a canonical graph.
+/** Compute the v1 SHA-256 fingerprint of a canonical graph.
  * @param schema - canonical resolved persisted type.
  * @returns lowercase hexadecimal digest.
  */
 export function schemaDigest(schema: CanonicalSchema): string {
-  const version = schemaHasCompatibility(schema) ? 2 : 1
-  return createHash('sha256').update(`dsh-persistence-schema-v${String(version)}\n`).update(JSON.stringify(schema)).digest('hex')
-}
-
-/**
- * Identify graphs that require the policy-aware fingerprint domain.
- * @param schema - resolved persisted type.
- * @returns whether any reachable property records compatibility metadata.
- */
-export function schemaHasCompatibility(schema: CanonicalSchema): boolean {
-  return schema.nodes.some(node => node.kind === 'object' && node.properties.some(property => property.compatibility !== undefined))
+  return createHash('sha256').update('dsh-persistence-schema-v1\n').update(JSON.stringify(schema)).digest('hex')
 }
 
 /**

@@ -6,9 +6,9 @@ Distilled from the 2026-08 repo-wide purge and its review rounds. Use them to id
 
 ### Decision ordinal with a committed owner
 
-**Leaked:** "Slash input resolves against the visible catalog (decision 21)."
+**Leaked:** "Durable rationale goes in notes (decision 21)."
 
-**Fixed:** "The index lists only packages whose manifest declares a bundle — the format decision, owned by [the plugin market index format note](../../../notes/implemented/feature/2026-10-02-plugin-market-index-format.md)."
+**Fixed:** "Durable design rationale belongs in [Agent Notes](../../../notes/README.md)."
 
 The ordinal resolves nowhere at HEAD; the decision's name and owning note path do. Name the owning note's path at least once per file — as a link where the surface supports one — and later mentions may use the searchable name alone.
 

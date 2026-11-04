@@ -6,11 +6,11 @@ import { COVERAGE_PARTITION_MODE_ENV, COVERAGE_TEST_TIMEOUT_ENV, coverageTestTim
 import { LOCAL_TEST_PARALLELISM_CAP, defaultParallelism } from './scripts/parallelism.ts'
 
 const pathsPlugin = () => tsconfigPaths({ projects: ['./tsconfig.base.json'] })
-const testIncludes = ['packages/*/*/tests/**/*.spec.ts', 'apps/*/tests/**/*.spec.ts', 'scripts/**/*.spec.ts']
+const testIncludes = ['packages/*/*/tests/**/*.spec.{ts,tsx}', 'apps/*/tests/**/*.spec.{ts,tsx}', 'scripts/**/*.spec.ts']
 // These suites mutate worker-global process state or spawn process trees.
 const processBoundTests = ['scripts/run-gates.spec.ts', 'scripts/install-lefthook.spec.ts', 'scripts/oxlint-contract.spec.ts']
 // Built consumers are a separate output-only plane and fail without artifacts.
-const artifactTests = ['scripts/built-runtime.spec.ts', 'packages/*/*/tests/**/*.built.spec.ts', 'apps/*/tests/**/*.built.spec.ts']
+const artifactTests = ['scripts/built-runtime.spec.ts', 'packages/*/*/tests/**/*.built.spec.{ts,tsx}', 'apps/*/tests/**/*.built.spec.{ts,tsx}']
 const partitionRaw = process.env[COVERAGE_PARTITION_MODE_ENV]
 if (partitionRaw !== undefined && partitionRaw !== '' && partitionRaw !== '1') {
   throw new Error('vitest config: ' + COVERAGE_PARTITION_MODE_ENV + ' must be 1 or unset')
@@ -38,7 +38,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      include: ['packages/*/*/src/**/*.ts'],
+      include: ['packages/*/*/src/**/*.{ts,tsx}'],
       // A killed executable lint-contract test can leave a non-product source probe behind;
       // a partition that finalizes while that probe exists must not report it as uncovered source.
       exclude: ['packages/*/*/src/oxlint-contract-*.ts'],

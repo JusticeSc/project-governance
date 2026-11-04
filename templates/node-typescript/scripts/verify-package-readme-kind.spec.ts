@@ -27,14 +27,14 @@ function fixture(): string {
   writeFileSync(join(root, 'scripts/package-readme-policy.manifest.json'), JSON.stringify({
     allowedKinds: ['package-group', 'package-library'], groupKind: 'package-group', defaultPackageKind: 'package-library', packageKinds: {},
   }))
-  for (const directory of ['packages', 'packages/util', 'packages/util/plugin-market-index']) {
+  for (const directory of ['packages', 'packages/util', 'packages/util/probe']) {
     mkdirSync(join(root, directory), { recursive: true })
-    const kind = directory === 'packages/util/plugin-market-index' ? 'package-library' : 'package-group'
+    const kind = directory === 'packages/util/probe' ? 'package-library' : 'package-group'
     const frontmatter = `---\nkind: "${kind}"\ndescription: "Fixture"\n---\n\n`
     writeFileSync(join(root, directory, 'README.md'), `${frontmatter}## Summary\n\n## Table of Contents\n\n## Dev Note\n`)
     writeFileSync(join(root, directory, 'README.zh.md'), `${frontmatter}## 摘要\n\n## 目录\n\n## 开发记录\n`)
   }
-  writeFileSync(join(root, 'packages/util/plugin-market-index/package.json'), '{"name":"fixture-library","version":"1.0.0"}')
+  writeFileSync(join(root, 'packages/util/probe/package.json'), '{"name":"fixture-library","version":"1.0.0"}')
   symlinkSync(join(repository, 'node_modules'), join(root, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
   return root
 }

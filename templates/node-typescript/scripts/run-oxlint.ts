@@ -1,8 +1,11 @@
 import { spawnSync } from 'node:child_process'
+import { existsSync, globSync } from 'node:fs'
 import { availableParallelism } from 'node:os'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defaultParallelism } from './parallelism.ts'
+import ts from 'typescript'
+import { readWorkspaceManifests } from './check-workspace-constraints.ts'
 
 const oxlintCli = fileURLToPath(new URL('../node_modules/oxlint/bin/oxlint', import.meta.url))
 const MAX_CAPTURED_OUTPUT_BYTES = 64 * 1024 * 1024
@@ -70,7 +73,41 @@ function completeFrom(result: { readonly signal: NodeJS.Signals | null; readonly
   process.exitCode = result.status ?? 1
 }
 
+function validateTypedWorkspaceSources(root: string): void {
+  if (!existsSync(resolve(root, 'pnpm-workspace.yaml'))) return
+  const projects = new Map<string, Set<string>>()
+  for (const { dir } of readWorkspaceManifests(root)) {
+    if (dir === '.') continue
+    for (const file of globSync(['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}', 'tests/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'], {
+      cwd: resolve(root, dir), exclude: ['**/node_modules/**'],
+    })) {
+      if (!/\.(?:ts|tsx)$/u.test(file)) throw new Error(`run-oxlint: ${dir}/${file} has no supported type-aware lint binding; use .ts or .tsx`)
+      const filename = resolve(root, dir, file)
+      let owner = dirname(filename)
+      while (!existsSync(resolve(owner, 'tsconfig.json'))) {
+        if (owner === root) throw new Error(`run-oxlint: no nearest tsconfig for ${dir}/${file}`)
+        owner = dirname(owner)
+      }
+      const configPath = resolve(owner, 'tsconfig.json')
+      let included = projects.get(configPath)
+      if (included === undefined) {
+        const config = ts.getParsedCommandLineOfConfigFile(configPath, {}, {
+          ...ts.sys,
+          onUnRecoverableConfigFileDiagnostic(diagnostic) {
+            throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+          },
+        })
+        if (config === undefined || config.errors.length > 0) throw new Error(`run-oxlint: invalid nearest tsconfig ${configPath}`)
+        included = new Set(config.fileNames.map(path => resolve(path)))
+        projects.set(configPath, included)
+      }
+      if (!included.has(filename)) throw new Error(`run-oxlint: ${dir}/${file} is not included by its nearest tsconfig ${configPath}`)
+    }
+  }
+}
+
 function main(): void {
+  validateTypedWorkspaceSources(resolve(process.cwd()))
   const invocation = resolveOxlintInvocation(process.argv.slice(2), process.env)
   if (!isFixInvocation(invocation.args)) {
     const result = spawnSync(process.execPath, [oxlintCli, ...invocation.args], {

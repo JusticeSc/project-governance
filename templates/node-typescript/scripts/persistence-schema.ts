@@ -1,21 +1,16 @@
-/** Extract complete format-1 JSON types with the source persistence graph engine. */
+/** Extract declared project persistence types with the source graph engine. */
 
-import { readFileSync } from 'node:fs'
-import { relative, resolve, sep } from 'node:path'
+import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs'
+import { isAbsolute, relative, resolve, sep } from 'node:path'
 import ts from 'typescript'
-import { sourceCompatibilityAnnotations } from './persistence-source-annotations.ts'
-import { validSourceCompatibility } from './persistence-source-policy.ts'
 import {
   canonicalizeSchema,
   schemaChildren,
   schemaDigest,
-  schemaHasCompatibility,
-  type PersistenceRoot,
   type PersistenceSchemaInventory,
   type PersistenceType,
   type SchemaNode,
   type SchemaProperty,
-  type SourceCompatibility,
 } from './persistence-schema-model.ts'
 
 interface DeclarationMetadata {
@@ -25,9 +20,7 @@ interface DeclarationMetadata {
 
 interface RootInput {
   readonly key: string
-  readonly kind: PersistenceRoot['kind']
-  readonly event?: string
-  readonly surface?: boolean
+  readonly versionField?: string
   readonly node: number
 }
 
@@ -36,13 +29,52 @@ export class PersistenceSchemaError extends Error {
   override name = 'PersistenceSchemaError'
 }
 
-/** Extract the actual format-owning MarketIndex type and its complete reachable graph.
- * @param root - independent template checkout or source fixture.
- * @returns canonical current declared JSON structure; not a runtime-validation claim.
+/** Extract all explicitly declared project persistence types and reachable types.
+ * @param root - independent project checkout or source fixture.
+ * @returns canonical source inventory, or an empty inventory when no roots are declared.
  */
 export function extractPersistenceSchema(root: string): PersistenceSchemaInventory {
   root = resolve(root)
-  const filename = resolve(root, 'packages/util/plugin-market-index/src/types.ts')
+  const configPathname = resolve(root, 'persistence.config.json')
+  let present = true
+  try { lstatSync(configPathname) } catch (error: unknown) {
+    if (error === null || typeof error !== 'object' || !('code' in error) || error.code !== 'ENOENT') throw error
+    present = false
+  }
+  if (!present) return { formatVersion: 1, roots: [], types: [] }
+  const input: unknown = JSON.parse(readFileSync(configPathname, 'utf8'))
+  if (input === null || typeof input !== 'object' || Array.isArray(input)
+    || Object.keys(input).join(',') !== 'roots' || !('roots' in input) || !Array.isArray(input.roots)) {
+    throw new PersistenceSchemaError('persistence.config.json: expected a roots array')
+  }
+  const roots: { id: string; owner: string; type: string; versionField?: string; filename: string }[] = []
+  const ids = new Set<string>()
+  const owners = new Set<string>()
+  const actualRoot = realpathSync(root)
+  for (const value of input.roots) {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) throw new PersistenceSchemaError('persistence.config.json: invalid root')
+    const item = value as Record<string, unknown>
+    if (Object.keys(item).some(key => !['id', 'owner', 'type', 'versionField'].includes(key))
+      || typeof item.id !== 'string' || !/^[a-z][a-z0-9-]*$/u.test(item.id)
+      || typeof item.owner !== 'string' || !/^(?:apps\/[^/]+|packages\/[^/]+\/[^/]+)\/src\/(?:[^/]+\/)*[^/]+\.ts$/u.test(item.owner)
+      || item.owner.split('/').some(part => part === '.' || part === '..')
+      || typeof item.type !== 'string' || !/^[A-Za-z_$][\w$]*$/u.test(item.type)
+      || (item.versionField !== undefined && (typeof item.versionField !== 'string' || !/^[A-Za-z_$][\w$]*$/u.test(item.versionField)))) {
+      throw new PersistenceSchemaError('persistence.config.json: invalid root id, owner, type or versionField')
+    }
+    const filename = resolve(root, item.owner)
+    if (!existsSync(filename)) throw new PersistenceSchemaError(`persistence schema: missing declared owner ${item.owner}`)
+    const actualFile = realpathSync(filename)
+    const actual = relative(actualRoot, actualFile)
+    if (actual === '..' || actual.startsWith(`..${sep}`) || isAbsolute(actual)) throw new PersistenceSchemaError(`persistence schema: owner ${item.owner} resolves outside project`)
+    const binding = `${actualFile}#${item.type}`
+    if (ids.has(item.id) || owners.has(binding)) throw new PersistenceSchemaError(`persistence.config.json: duplicate root ${item.id} or owner ${binding}`)
+    ids.add(item.id)
+    owners.add(binding)
+    roots.push({ id: item.id, owner: item.owner, type: item.type, filename,
+      ...(item.versionField === undefined ? {} : { versionField: item.versionField as string }) })
+  }
+  roots.sort((left, right) => compare(left.id, right.id))
   const configPath = resolve(root, 'tsconfig.base.json')
   const config = ts.readConfigFile(configPath, file => readFileSync(file, 'utf8'))
   if (config.error !== undefined) throw new PersistenceSchemaError(diagnosticText(config.error))
@@ -51,18 +83,33 @@ export function extractPersistenceSchema(root: string): PersistenceSchemaInvento
   if (errors.length > 0) throw new PersistenceSchemaError(errors.map(diagnosticText).join('\n'))
   const options: ts.CompilerOptions = { ...parsed.options, composite: false, incremental: false,
     noEmit: true, rootDir: root, skipLibCheck: false, strict: true, exactOptionalPropertyTypes: true }
-  const program = ts.createProgram({ rootNames: [filename], options })
-  const source = program.getSourceFile(filename)
-  if (source === undefined) throw new PersistenceSchemaError('persistence schema: missing format type owner')
-  const declarations = source.statements.filter((node): node is ts.InterfaceDeclaration | ts.TypeAliasDeclaration =>
-    (ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) && node.name.text === 'MarketIndex')
-  if (declarations.length !== 1) throw new PersistenceSchemaError('persistence schema: expected one MarketIndex declaration')
-  const declaration = declarations[0] as ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+  const program = ts.createProgram({ rootNames: [...new Set(roots.map(item => item.filename))], options })
+  const declarations = roots.map((item) => {
+    const source = program.getSourceFile(item.filename)
+    if (source === undefined) throw new PersistenceSchemaError(`persistence schema: missing declared owner ${item.owner}`)
+    const matches = source.statements.filter((node): node is ts.InterfaceDeclaration | ts.TypeAliasDeclaration =>
+      (ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) && node.name.text === item.type
+        && node.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword) === true)
+    if (matches.length !== 1) throw new PersistenceSchemaError(`persistence schema: expected one exported ${item.type} declaration in ${item.owner}`)
+    return matches[0] as ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+  })
   const diagnostics = [...program.getOptionsDiagnostics(), ...program.getSyntacticDiagnostics()]
   if (diagnostics.length > 0) throw new PersistenceSchemaError(diagnostics.map(diagnosticText).join('\n'))
-  const extraction = new SchemaExtractor(root, program, validateReachableDeclarations(program, root, [declaration]))
-  return extraction.inventory([{ key: 'MarketIndex', kind: 'header',
-    node: extraction.convert(program.getTypeChecker().getTypeAtLocation(declaration), declaration) }])
+  const extraction = new SchemaExtractor(root, program, validateReachableDeclarations(program, root, declarations))
+  const inventory = extraction.inventory(roots.map((item, index) => {
+    const declaration = declarations[index] as ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+    return { key: item.id, kind: 'header', ...(item.versionField === undefined ? {} : { versionField: item.versionField }),
+      node: extraction.convert(program.getTypeChecker().getTypeAtLocation(declaration), declaration) }
+  }))
+  for (const item of inventory.roots) if (item.versionField !== undefined) {
+    const node = item.schema.nodes[0]
+    const property = node?.kind === 'object' ? node.properties.find(property => property.name === item.versionField) : undefined
+    const version = property === undefined ? undefined : item.schema.nodes[property.type]
+    if (property?.optional !== false || version?.kind !== 'literal' || typeof version.value !== 'number' || !Number.isSafeInteger(version.value) || version.value < 0) {
+      throw new PersistenceSchemaError(`${item.key}: declared versionField ${item.versionField} must be a required non-negative integer literal`)
+    }
+  }
+  return inventory
 }
 
 function validateReachableDeclarations(
@@ -120,27 +167,6 @@ function isNeverOrUndefined(type: ts.Type): boolean {
     .every(member => (member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Never)) !== 0)
 }
 
-function reservedPropertyAnnotations(root: string, program: ts.Program): ReadonlySet<ts.Declaration> {
-  const checker = program.getTypeChecker()
-  const reserved = new Set<ts.Declaration>()
-  for (const file of program.getSourceFiles()) {
-    const path = slash(relative(root, file.fileName))
-    if (!path.startsWith('packages/') || path.includes('/node_modules/')) continue
-    const visit = (node: ts.Node): void => {
-      const tags = ts.getJSDocTags(node).filter(tag => tag.tagName.text === 'persistenceReserved')
-      if (tags.length > 0) {
-        if (tags.length !== 1 || tags[0]?.comment !== undefined || !ts.isPropertySignature(node)
-          || node.questionToken === undefined || !isNeverOrUndefined(checker.getTypeAtLocation(node))) {
-          throw new PersistenceSchemaError(`persistence schema: ${path}: @persistenceReserved requires one argument-free marker on an optional never or undefined property`)
-        }
-        reserved.add(node)
-      }
-      ts.forEachChild(node, visit)
-    }
-    visit(file)
-  }
-  return reserved
-}
 
 class SchemaExtractor {
   readonly nodes: SchemaNode[] = []
@@ -148,8 +174,6 @@ class SchemaExtractor {
   private readonly declarationMetadata = new Map<number, DeclarationMetadata>()
 
   private readonly checker: ts.TypeChecker
-  private readonly sourcePolicies: ReadonlyMap<ts.Declaration, readonly SourceCompatibility[]>
-  private readonly reservedProperties: ReadonlySet<ts.Declaration>
 
   constructor(
     private readonly root: string,
@@ -157,8 +181,6 @@ class SchemaExtractor {
     private readonly declarationSources: ReadonlyMap<ts.Type, readonly ts.Node[]>,
   ) {
     this.checker = program.getTypeChecker()
-    this.sourcePolicies = sourceCompatibilityAnnotations(root, program)
-    this.reservedProperties = reservedPropertyAnnotations(root, program)
   }
 
   convert(type: ts.Type, site: ts.Node): number {
@@ -236,17 +258,9 @@ class SchemaExtractor {
       const declaration = property.valueDeclaration ?? property.declarations?.[0] ?? site
       const propertyType = this.checker.getTypeOfSymbolAtLocation(property, declaration)
       const optional = (property.flags & ts.SymbolFlags.Optional) !== 0
-      const reserved = property.declarations?.some(declaration => this.reservedProperties.has(declaration)) === true
-      if (reserved && (!optional || !isNeverOrUndefined(propertyType))) {
-        this.fail(type, declaration, '@persistenceReserved must remain an optional never or undefined property')
-      }
-      if (optional && isNeverOrUndefined(propertyType) && !reserved) continue
+      if (optional && isNeverOrUndefined(propertyType)) continue
       const child = this.valueType(propertyType, declaration, optional)
-      const policies = this.propertyPolicies(type, property, declaration)
-      if (policies.length > 1) this.fail(type, declaration, 'ambiguous source compatibility binding')
-      properties.push({ name: property.getName(), type: child, optional,
-        ...(policies[0] === undefined ? {} : { compatibility: policies[0] }),
-      })
+      properties.push({ name: property.getName(), type: child, optional })
     }
     const indices = this.checker.getIndexInfosOfType(type).map(info => ({
       key: this.convert(info.keyType, site),
@@ -256,18 +270,6 @@ class SchemaExtractor {
     return { kind: 'object', properties, indices }
   }
 
-  private propertyPolicies(type: ts.Type, property: ts.Symbol, site: ts.Node): readonly SourceCompatibility[] {
-    const declared = (property.declarations ?? []).flatMap(declaration => this.sourcePolicies.get(declaration) ?? [])
-    if (declared.length === 0) return []
-    const roleProperty = this.checker.getPropertyOfType(type, 'role')
-    if (roleProperty === undefined || (roleProperty.flags & ts.SymbolFlags.Optional) !== 0) return []
-    const role = this.checker.getTypeOfSymbolAtLocation(roleProperty, site)
-    if (!(role.flags & ts.TypeFlags.StringLiteral)) return []
-    const binding = (role as ts.StringLiteralType).value === 'user' ? 'session.user-message.source'
-      : (role as ts.StringLiteralType).value === 'developer' ? 'session.developer-message.source'
-        : undefined
-    return declared.filter(policy => policy.binding === binding)
-  }
 
   private rejectClass(type: ts.Type, site: ts.Node): void {
     const symbol = type.getSymbol()
@@ -298,21 +300,12 @@ class SchemaExtractor {
 
 
   inventory(inputs: readonly RootInput[]): PersistenceSchemaInventory {
-    for (const node of this.nodes) {
-      if (node.kind !== 'object') continue
-      for (const property of node.properties) {
-        if (property.compatibility !== undefined && !validSourceCompatibility(this.nodes, node, property)) {
-          throw new PersistenceSchemaError('persistence schema: invalid source compatibility binding or attribution kinds')
-        }
-      }
-    }
     const roots = inputs.map((input) => {
       const schema = canonicalizeSchema(this.nodes, input.node)
       return {
         key: input.key,
-        kind: input.kind,
-        ...(input.event === undefined ? {} : { event: input.event }),
-        ...(input.surface === undefined ? {} : { surface: input.surface }),
+        kind: 'header' as const,
+        ...(input.versionField === undefined ? {} : { versionField: input.versionField }),
         digest: schemaDigest(schema),
         schema,
       }
@@ -336,7 +329,7 @@ class SchemaExtractor {
       types.set(digest, item)
     }
     return {
-      formatVersion: roots.some(root => schemaHasCompatibility(root.schema)) ? 2 : 1,
+      formatVersion: 1,
       roots,
       types: [...types].sort(([left], [right]) => compare(left, right)).map(([digest, item]) => ({
         digest,
@@ -391,5 +384,5 @@ function slash(path: string): string {
 }
 
 function trackedSource(file: string): boolean {
-  return (file.startsWith('packages/') || file.startsWith('vendor/')) && !file.includes('/node_modules/')
+  return (file.startsWith('apps/') || file.startsWith('packages/') || file.startsWith('vendor/')) && !file.includes('/node_modules/')
 }

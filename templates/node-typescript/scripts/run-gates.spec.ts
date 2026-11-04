@@ -171,8 +171,15 @@ describe('gate graph validation', () => {
   it('orders every source-tree scan behind the instrumented lane', () => {
     const gates = withPnpmEntrypoint(() => gatesForMode('ci-primary'))
     // The lint-contract fixture writes probe files into real include paths while coverage runs.
-    for (const id of ['constraints', 'package-dependencies', 'no-unknown-casts', 'doc-refs', 'package-paths', 'tsconfig-paths', 'duplication']) {
+    for (const id of ['constraints', 'package-dependencies', 'no-unknown-casts', 'doc-refs', 'package-paths', 'tsconfig-paths', 'persistence', 'duplication']) {
       expect(gates.find(candidate => candidate.id === id)?.after, id).toContain('coverage')
+    }
+  })
+
+  it('retains the configured persistence checker in the applicable aggregate modes', () => {
+    for (const mode of ['hygiene', 'ci-static', 'ci-primary', 'check-all'] as const) {
+      const gates = withPnpmEntrypoint(() => gatesForMode(mode))
+      expect(gates.find(gate => gate.id === 'persistence')?.displayCommand).toBe('pnpm run verify-persistence')
     }
   })
 

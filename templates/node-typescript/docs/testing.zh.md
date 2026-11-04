@@ -7,8 +7,8 @@
 ## 层级
 
 - **单元**（`pnpm run test`）：Vitest 运行包与应用 `tests/**` 下的 spec，以及 `scripts/**/*.spec.ts` 下的仓库脚本 spec。测试与所测代码领域放在一起。优先覆盖边界情况、错误路径、顺序、并发竞争，以及针对合同缺陷的永久回归。
-- **覆盖率门禁**（`pnpm run test:coverage`）：面向包运行时代码的门禁运行。V8 覆盖率作用于 `packages/*/*/src/**/*.ts`，逐文件要求语句、分支、函数与行覆盖率均为 100%，且不设豁免。仅类型声明文件不承载运行时语义，不构成行为义务。应用由行为 spec、真实 CLI 接受/拒绝与构建入口 smoke 证明，不适用应用级逐文件 V8 阈值。未覆盖的运行时行往往是门禁提示删除的死代码，而不是需要硬补的测试。行覆盖必要但不充分：它证明行被执行过，不证明行为正确。
-- **分区覆盖率**（`pnpm run test:coverage:partitioned`）：同一门禁拆分为并发分区。单次运行较慢时使用；它执行相同阈值。
+- **覆盖率门禁**（`pnpm run test:coverage`）：面向包运行时代码的门禁运行。V8 覆盖率作用于 `packages/*/*/src/` 下的 `.ts` 和 `.tsx` 运行时源码，逐文件要求语句、分支、函数与行覆盖率均为 100%，且不设豁免。仅类型声明文件不承载运行时语义，不构成行为义务。应用由行为 spec、真实 CLI 接受/拒绝与构建入口 smoke 证明，不适用应用级逐文件 V8 阈值。未覆盖的运行时行往往是门禁提示删除的死代码，而不是需要硬补的测试。行覆盖必要但不充分：它证明行被执行过，不证明行为正确。
+- **分区覆盖率**（`pnpm run test:coverage:partitioned`）：单次运行较慢时，将同一门禁拆分为并发分区；阈值不变。
 - **构建产物测试**（`pnpm run test:built`）：业务所属的 `tests/**/*.built.spec.ts` 消费构建后应用或库导出；脚本所属套件拒绝缺失发布产物并接受精确恢复。这些套件仅在产物分面运行，不进入源码测试或覆盖率。它们验证产物入口，不验证源码启动器或独立 tarball 安装；打包消费者另行验证。
 - **审批策略**（`pnpm run test:approval-policy`）：`.github/review-ownership` 审批与作者权重规则的 Node 测试 spec。这是继承的配置；绿色运行证明脚本，不证明远端强制。
 - **审批归属**（`pnpm run test:approval-ownership`）：Python 3.10 unittest spec，用真实 Git 历史验证生产代码行归属、重命名识别、浅历史拒绝与发布器的抓取路径。夹具需要 POSIX 文件系统与可执行脚本，因此两个用例带有写明所缺能力的 Windows 显式跳过；工作流只声明 Linux runner。
@@ -23,29 +23,28 @@ Vitest 在 fork 的 worker 中同时运行多个 spec 文件，覆盖率门禁�
 
 只 mock 昂贵或不确定的边界——网络、时钟或远端 Git 主机——并让下游一切保持真实。通过仅测试使用的 `file` 传输访问的本地仓库带有真实 ref 与对象；手写的抓取器只证明桥接能搬字节，不证明发布的读取器如断言般工作。
 
-校验器是纯库：用真实 JSON 值与真实解析器测试它，并让应用针对真实校验器运行而非 mock `parseMarketIndex`，这样格式规则与生成器规则才不会漂移。
+解析器或校验器与消费方的合同相互作用时，通过真实消费方验证真实实现；mock 不能掩盖两者不匹配。
 
 ## 验证世界，而非自述
 
-端到端断言从被测代码之外重新读取输出文件、图标目录或缓存。只检查返回对象或日志行的测试会让生产者声称成功却没有写出任何东西。断言未触及文件字节不变；断言第二次运行不重写任何内容；断言被拒绝的来源保留其上一次成功条目。
+端到端断言从被测代码之外重新读取相关输出文件、持久状态或缓存。只检查返回对象或日志行的测试会让生产者声称成功却没有写出任何东西。针对实际合同断言保护与恢复行为。
 
 测试拥有自己的资源：临时目录在 teardown 中删除，即使发生失败或重试。共享 fixture 放在普通 `tests/support.ts` 中，而不是另一个 `*.spec.ts`，因为导入它会重复注册其 `describe` 与副作用。
 
 ## 测试真实入口路径
 
-- 通过真实解析器测试 CLI 参数解析：缺少必需选项、无效列表行、过大的内联图标阈值与无效输出路径必须以 `2` 退出而不是抛出。
-- 已发布入口是构建产物：`apps/plugin-market-generator/lib/types/bin.js` 以纯 Node 运行，暴露 `tsx` 会掩盖的失败，例如包导出解析或过期声明。构建后保持构建产物的 smoke 为绿色。
+- 通过真实入口测试参数解析与缺失或无效配置，断言合同规定的失败与诊断。
+- 应用发布构建入口时，构建后以纯 Node 运行真实产物；这能暴露源码启动器可能掩盖的解析与声明失败。
 - 只有回归会让断言失败，守卫才成立。引入回归，观察测试变红，再回退。前后都通过的测试不守卫该行为。
-- 缺失配置应响亮失败：没有可读输入文件或缺少必需标题的生成运行会以非零状态退出并给出可操作信息。
 
 ## 测试解析：仅源码面
 
-源码面的 Vitest 配置把 vite-tsconfig-paths 指向 `tsconfig.base.json`；workspace 裸导入解析到 `src`，从不经过包的 `exports` 进入构建后的 `lib/`。那里的过期产物会加载模块单例的第二份副本。构建产物配置刻意不加载源码别名插件。构建产物只被显式消费：`start:built`、`test:built` 与构建包 smoke 测试。
+源码面的 Vitest 配置把 vite-tsconfig-paths 指向 `tsconfig.base.json`；workspace 裸导入解析到 `src`，从不经过包的 `exports` 进入构建后的 `lib/`。那里的过期产物会加载模块单例的第二份副本。构建产物配置刻意不加载源码别名插件；显式消费实际构建入口。
 
 ## 子进程启动方式
 
 - 测试与源码启动器通过 `tsx` 运行 TypeScript，使根 `paths` 映射生效。
-- 构建后的应用以纯 Node 运行 `lib/types/bin.js`，不加载 TypeScript loader。
+- 构建后的应用以纯 Node 运行其声明的产物，不加载 TypeScript loader。
 - Git fixture 针对临时仓库运行真实 `git` 二进制；不要求 SSH，仅测试使用的 `file` 传输是显式的。源码路径测试可以选择 `src`，并在测试中说明该合同。
 
 <a id="documentation-compilation"></a>
@@ -62,6 +61,11 @@ Vitest 在 fork 的 worker 中同时运行多个 spec 文件，覆盖率门禁�
 `pnpm run verify-package-export-keys`是模板新增的辅助检查，覆盖已声明的`packages/*/*`和`apps/*` workspace成员。库必须提供export map，app可以省略；检查拒绝标准集合及登记新增项以外的键，也拒绝键或成员已不存在的新增登记。[政策manifest](../scripts/package-export-keys.manifest.json)拥有受检键集合和新增记录；[包规则](../packages/AGENTS.md)拥有键的仓库级含义及新增键流程。
 
 manifest中的登记不能证明domain owner已经确认；评审仍须核对必要性、共享语义与确认。来源归属记录在[SOURCE-LICENSE.txt](../SOURCE-LICENSE.txt)。
+
+<a id="persistence-verification"></a>
+## 持久化验证
+
+`pnpm run verify-persistence` 对照已确认历史与冻结 checkpoint 检查当前声明根。它进入 hygiene、完整本地图和 CI；由检查器判断适用性，不由聚合层遇到空配置就跳过。没有配置且没有历史时明确报告未声明根。已有历史却没有配置时失败；`roots: []` 保留退出历史及其检查。准备流程见[声明真实持久化](cookbook/starting-a-project.zh.md#3-declare-actual-persistence)。结构检查通过不能证明运行时读取或迁移兼容，仍须另行测试真实消费方。
 
 ## 覆盖率与排除项
 

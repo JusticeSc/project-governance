@@ -130,9 +130,16 @@ function linkPackage(pkg: WorkspacePackage, nodeModules: string): void {
 }
 
 const packages = declaredPackages()
-if (packages.length === 0) {
-  console.error(`${GATE}: no workspace member exposes declarations; the check would scan nothing.`)
+const libraries = readWorkspaceManifests(root).filter(({ dir }) => /^packages\/[^/]+\/[^/]+$/u.test(dir))
+const missingDeclarations = libraries.filter(({ manifest }) => typeof manifest.types !== 'string')
+if (missingDeclarations.length > 0) {
+  console.error(`${GATE}: workspace libraries must expose declarations: ${missingDeclarations.map(({ dir }) => dir).join(', ')}`)
   process.exit(1)
+}
+if (packages.length === 0) {
+  if (libraries.length > 0) throw new Error(`${GATE}: workspace libraries exist but none exposes declarations.`)
+  console.log(`${GATE}: no workspace library declarations to check.`)
+  process.exit(0)
 }
 const badSpecifiers = relativeSpecifiersMissingExtensions()
 if (badSpecifiers.length > 0) {

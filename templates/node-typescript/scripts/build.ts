@@ -1,7 +1,7 @@
 /** Build Node artifacts and check aggregate consumers as one ordered source-derived graph. */
 import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'
-import { aggregateBuildArgs, aggregateCheckArgs, contractSteps, libraryBuildSteps } from './compile-referenced-projects.ts'
+import { aggregateBuildArgs, aggregateCheckArgs, contractSteps, libraryBuildSteps, referencedProjectsCompilerArgs } from './compile-referenced-projects.ts'
 import type { LibraryStep } from './compile-referenced-projects.ts'
 import { defaultParallelism, describeDefaultParallelism } from './parallelism.ts'
 import { runAggregate } from './run-gates.ts'
@@ -31,6 +31,7 @@ export function buildGates(
 ): Gate[] {
   const env = { ...environment }
   const gates: Gate[] = []
+  if (scope === 'check') referencedProjectsCompilerArgs(root, 'host')
   if (scope === 'complete' || scope === 'artifacts') {
     for (const step of libraryBuildSteps(root)) gates.push(libraryGate(step, env))
   }
@@ -44,7 +45,7 @@ export function buildGates(
       displayCommand: 'tsc ' + (scope === 'typecheck' ? '-b' : '-p') + ' tsconfig.host.json',
       command: process.execPath,
       args: scope === 'typecheck' ? aggregateBuildArgs('host') : aggregateCheckArgs('host'),
-      needs: scope === 'check' ? [] : ['host-src'],
+      needs: scope === 'check' || !gates.some(gate => gate.id === 'host-src') ? [] : ['host-src'],
       env,
     })
   }
@@ -60,6 +61,10 @@ async function main(): Promise<number> {
   if (!process.features.typescript) throw new Error('build: Node.js TypeScript type stripping is required by tsdown')
   const { scope } = parseBuildArguments(process.argv.slice(2))
   const gates = buildGates(resolve(import.meta.dirname, '..'), scope)
+  if (gates.length === 0) {
+    console.log('build: no workspace artifacts to build.')
+    return 0
+  }
   return runAggregate(scope === 'complete' ? 'build' : scope, gates, {
     workers: Math.min(gates.length, defaultParallelism()),
     source: describeDefaultParallelism(),

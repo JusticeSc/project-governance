@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { constants, copyFileSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,6 +25,20 @@ function run(label, executable, args, cwd, expected = 0, timeout = 180_000, chil
   return result
 }
 
+// Node 22 on Windows can crash in cpSync when a path contains non-ASCII characters.
+function copyRegularTree(source, destination) {
+  mkdirSync(destination)
+  for (const entry of readdirSync(source, { withFileTypes: true })) {
+    const from = join(source, entry.name)
+    const to = join(destination, entry.name)
+    if (entry.isDirectory()) copyRegularTree(from, to)
+    else {
+      assert(entry.isFile(), `Unexpected non-regular Skill entry: ${from}`)
+      copyFileSync(from, to, constants.COPYFILE_EXCL)
+    }
+  }
+}
+
 try {
   const packed = JSON.parse(run('pack selected product', process.execPath, [npm, 'pack', '--json', '--ignore-scripts', '--pack-destination', temporary], source).stdout)[0]
   assert(packed.files.some(file => file.path === 'npm-shrinkwrap.json'), 'The distributable lock must travel in the actual tarball')
@@ -34,11 +48,9 @@ try {
   assert(packed.files.some(file => file.path === 'skills/project-governance/scripts/install-template.mjs'), 'The Skill installer must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/lefthook.yml'), 'The template hook configuration must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/gitignore'), 'The npm-safe ignore source must travel in the actual tarball')
-  assert(packed.files.some(file => file.path === 'templates/node-typescript/apps/plugin-market-generator/src/cli.ts'), 'Template application source must travel in the actual tarball')
-  assert(packed.files.some(file => file.path === 'templates/node-typescript/packages/util/plugin-market-index/src/index.ts'), 'Template capability source must travel in the actual tarball')
+  assert(packed.files.some(file => file.path === 'templates/node-typescript/scripts/run-gates.ts'), 'Template governance scripts must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/.agents/skills/dsh-code-review/SKILL.md'), 'The template workflow guidance must travel in the actual tarball')
-  assert(packed.files.some(file => file.path === 'templates/node-typescript/.claude/skills'), 'The Claude skills link marker must travel in the actual tarball')
-  assert(!packed.files.some(file => file.path.startsWith('templates/node-typescript/.claude/') && file.path !== 'templates/node-typescript/.claude/skills'), 'Template local Claude settings must not enter the actual tarball')
+  assert(!packed.files.some(file => file.path.startsWith('templates/node-typescript/.claude/')), 'Template local Claude settings must not enter the actual tarball')
   for (const file of packed.files) {
     assert(!/(^|\/)(?:node_modules|\.git|_working|research|knowledge|runs|__pycache__)(?:\/|$)/u.test(file.path), 'Private/history/dependency payload: ' + file.path)
     if (file.path.startsWith('templates/')) assert(!/(^|\/)(?:lib|\.cache)(?:\/|$)/u.test(file.path), 'Generated template output: ' + file.path)
@@ -56,30 +68,28 @@ try {
   writeFileSync(join(publicationProbe, reviewPath, '__pycache__', 'private-probe.pyc'), 'private generated cache sentinel\n')
   const claudePath = 'templates/node-typescript/.claude'
   mkdirSync(join(publicationProbe, claudePath), { recursive: true })
-  writeFileSync(join(publicationProbe, claudePath, 'skills'), readFileSync(join(source, claudePath, 'skills')))
   for (const name of ['settings.json', 'settings.local.json']) {
     writeFileSync(join(publicationProbe, claudePath, name), 'local settings sentinel\n')
   }
-  const workspaceProbes = [
-    ['templates/node-typescript/apps/plugin-market-generator', 'src/cli.ts'],
-    ['templates/node-typescript/packages/util/plugin-market-index', 'src/index.ts'],
+  const unusedWorkspaces = [
+    'templates/node-typescript/apps/example',
+    'templates/node-typescript/packages/example/example',
   ]
-  for (const [directory, authored] of workspaceProbes) {
+  for (const directory of unusedWorkspaces) {
     mkdirSync(join(publicationProbe, directory, 'src'), { recursive: true })
-    writeFileSync(join(publicationProbe, directory, authored), readFileSync(join(source, directory, authored)))
+    writeFileSync(join(publicationProbe, directory, 'src', 'index.ts'), 'unrelated workspace source\n')
     for (const generated of ['node_modules/.bin/tool', 'node_modules/.bin/tool.CMD', 'node_modules/.bin/tool.ps1', 'lib/index.js', 'lib/types/index.d.ts']) {
       mkdirSync(dirname(join(publicationProbe, directory, generated)), { recursive: true })
       writeFileSync(join(publicationProbe, directory, generated), 'generated workspace sentinel\n')
     }
   }
-  const probed = JSON.parse(run('publication retains author sources while excluding caches, installed workspace shims and emitted outputs', process.execPath, [npm, 'pack', '--json', '--ignore-scripts', '--pack-destination', temporary], publicationProbe).stdout)[0]
+  const probed = JSON.parse(run('publication retains governance sources while excluding caches and unrelated workspaces', process.execPath, [npm, 'pack', '--json', '--ignore-scripts', '--pack-destination', temporary], publicationProbe).stdout)[0]
   assert(probed.files.some(file => file.path === reviewPath + '/blame-production.py'), 'Review source must remain distributable')
   assert(probed.files.some(file => file.path === reviewPath + '/gitignore'), 'Review ignore rules must remain distributable')
   assert(!probed.files.some(file => /(^|\/)__pycache__(\/|$)/u.test(file.path)), 'Generated Python caches must not enter publication')
-  for (const [directory, authored] of workspaceProbes) assert(probed.files.some(file => file.path === `${directory}/${authored}`), 'Workspace source must remain distributable')
+  for (const directory of unusedWorkspaces) assert(!probed.files.some(file => file.path.startsWith(`${directory}/`)), 'Unrelated workspaces must not enter publication')
   assert(!probed.files.some(file => /(^|\/)(?:node_modules|lib)(\/|$)/u.test(file.path)), 'Installed workspace dependencies and build outputs must not enter publication')
-  assert(probed.files.some(file => file.path === `${claudePath}/skills`), 'The Claude skills link marker must remain distributable')
-  assert(!probed.files.some(file => file.path.startsWith(`${claudePath}/`) && file.path !== `${claudePath}/skills`), 'Template local Claude settings must not enter publication')
+  assert(!probed.files.some(file => file.path.startsWith(`${claudePath}/`)), 'Template local Claude settings must not enter publication')
   const consumer = join(temporary, 'packed consumer')
   mkdirSync(consumer)
   writeFileSync(join(consumer, 'package.json'), JSON.stringify({ name: 'governance-consumer', private: true }))
@@ -116,10 +126,12 @@ try {
     writeFileSync(boundaryEntry, boundarySource)
   }
   run('packed product accepts exact boundary restoration', process.execPath, [npm, 'run', 'check:structure'], packedRoot)
+  console.log('\n=== prepare copied Skill fixture ===')
   const ignoreFixture = join(temporary, 'installed template and Skill')
   const copiedSeat = join(ignoreFixture, '.agents/skills/project-governance')
   mkdirSync(join(ignoreFixture, '.agents/skills'), { recursive: true })
-  cpSync(seat, copiedSeat, { recursive: true })
+  copyRegularTree(seat, copiedSeat)
+  console.log('Copied the standalone Skill into its target project.')
   run('copied Skill installs inside its own target without dependencies', process.execPath, [join(copiedSeat, 'scripts/install-template.mjs'), ignoreFixture], consumer)
   assert.deepEqual(readFileSync(join(copiedSeat, 'SKILL.md')), skillBefore)
   run('copied Skill refuses conflicting reinstallation', process.execPath, [join(copiedSeat, 'scripts/install-template.mjs'), ignoreFixture], consumer, 1)

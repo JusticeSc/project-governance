@@ -6,26 +6,26 @@
   en: 5b1902d4bbdd90a5
   zh: a32340ef8373a050
 /testing-policy/tiers:
-  en: ce4fe7c34b1dfa7e
-  zh: 8c80beed1506e131
+  en: 3a83e26e78aadcb1
+  zh: 8b35075db2610d14
 /testing-policy/how-specs-execute:
   en: 411fa88da4533f72
   zh: a8bb21b08d8ac15d
 /testing-policy/prefer-the-real-implementation-over-a-mock:
-  en: ea3db5448ef9ca5d
-  zh: 56d9460688de6cfd
+  en: df0ef93bf5d5010f
+  zh: bf942ec85e30c038
 /testing-policy/verify-the-world-not-the-self-report:
-  en: 37307d73fc04498d
-  zh: ad5063657c6e558b
+  en: 2059819f3cc7bb94
+  zh: a126f79d8a150805
 /testing-policy/test-the-real-entry-path:
-  en: d7559c448812e4e4
-  zh: 4406b9778be73297
+  en: 32a6968b3604d2da
+  zh: 02c34c679214a9d3
 /testing-policy/test-resolution-source-plane-only:
-  en: 00e407fc3b08a114
-  zh: 3ca02785ebabe36a
+  en: ba51922a5af9766d
+  zh: c63827e6dc649ce2
 /testing-policy/subprocess-launch-modes:
-  en: 3b4cb7e5f0532277
-  zh: f4360bc6b9ec3027
+  en: f2ad3436d825fbce
+  zh: f0f8aaea7e0ff0f1
 /testing-policy/documentation-compilation:
   en: 1d460f4db631bf63
   zh: cb215fe68ac7b280
@@ -34,7 +34,10 @@
   zh: 80f813f5bb660383
 /testing-policy/workspace-export-keys:
   en: 4491646d8646135a
-  zh: 86e24ea9a06ee189
+  zh: d1204bc290944327
+/testing-policy/persistence-verification:
+  en: 98e976444b9c2ea4
+  zh: 77dd9a734f8b51d6
 /testing-policy/coverage-and-exclusions:
   en: cbbdbfb3b29cc7c8
   zh: 9f442dfef06f88cc

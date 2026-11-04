@@ -86,6 +86,7 @@ function createProductFixture(base) {
     copyFileSync(join(workspaceRoot, name), destination)
   }
   const claude = join(source, 'templates/node-typescript/.claude')
+  mkdirSync(claude, { recursive: true })
   writeFileSync(join(claude, 'settings.json'), '{"local":"do not distribute"}\n')
   writeFileSync(join(claude, 'settings.local.json'), '{"local":"do not distribute"}\n')
   return source
@@ -122,16 +123,14 @@ describe('distribution selection', () => {
     ])
   })
 
-  it('excludes template Claude local settings while retaining the skills entry', () => {
+  it('distributes project skills without agent-local settings or links', () => {
     const source = createProductFixture(makeBase())
     const files = packageFiles(source)
-    assert.ok(files.includes('templates/node-typescript/.claude/skills'))
     assert.ok(files.includes('templates/node-typescript/.agents/skills/dsh-doc/SKILL.md'))
-    assert.ok(!files.includes('templates/node-typescript/.claude/settings.json'))
-    assert.ok(!files.includes('templates/node-typescript/.claude/settings.local.json'))
+    assert.ok(!files.some(file => file.startsWith('templates/node-typescript/.claude/')))
   })
 
-  it('exports Claude skills without exporting template local settings', () => {
+  it('exports project skills without agent-local settings or links', () => {
     const base = makeBase()
     const source = createProductFixture(base)
     const dependency = join(source, 'node_modules/@project-governance/distribution')
@@ -145,9 +144,9 @@ describe('distribution selection', () => {
     })
     if (child.error) throw child.error
     assert.equal(child.status, 0, `${child.stdout}\n${child.stderr}`)
-    assert.ok(lstatSync(join(destination, '.claude/skills')).isSymbolicLink())
+    assert.equal(existsSync(join(destination, '.claude/skills')), false)
     assert.equal(
-      readFileSync(join(destination, '.claude/skills/dsh-doc/SKILL.md'), 'utf8'),
+      readFileSync(join(destination, '.agents/skills/dsh-doc/SKILL.md'), 'utf8'),
       readFileSync(join(source, 'templates/node-typescript/.agents/skills/dsh-doc/SKILL.md'), 'utf8'),
     )
     assert.equal(existsSync(join(destination, '.claude/settings.json')), false)

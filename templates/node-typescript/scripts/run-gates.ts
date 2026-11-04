@@ -78,7 +78,7 @@ const PROGRAM_MODE_CAP = 8
 
 /** Gates that resolve paths inside the source tree and must not run beside the probe lane. */
 const SOURCE_TREE_SCANNING_GATES = new Set([
-  'constraints', 'package-dependencies', 'no-unknown-casts', 'doc-refs', 'package-paths', 'tsconfig-paths',
+  'constraints', 'package-dependencies', 'no-unknown-casts', 'doc-refs', 'package-paths', 'tsconfig-paths', 'persistence',
 ])
 
 /** Order source-tree scans behind the instrumented lane; other gates keep their own timing. */
@@ -325,6 +325,7 @@ function hygieneLeafGates(): Gate[] {
     pnpmScript('export-jsdoc', 'verify-export-jsdoc'),
     pnpmScript('package-export-keys', 'verify-package-export-keys'),
     pnpmScript('product-use', 'verify-product-use'),
+    pnpmScript('persistence', 'verify-persistence'),
     pnpmScript('concrete-terms', 'verify-concrete-terms'),
   ]
 }

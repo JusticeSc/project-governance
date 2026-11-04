@@ -6,7 +6,9 @@
   },
   "include": [
     "apps/*/tests/**/*.ts",
+    "apps/*/tests/**/*.tsx",
     "packages/*/*/tests/**/*.ts",
+    "packages/*/*/tests/**/*.tsx",
     "scripts/**/*.ts",
     "*.config.ts",
     "vitest.shared.ts"
@@ -14,12 +16,5 @@
   "exclude": [
     "scripts/fixtures/**"
   ],
-  "references": [
-    {
-      "path": "./packages/util/plugin-market-index"
-    },
-    {
-      "path": "./apps/plugin-market-generator"
-    }
-  ]
+  "references": []
 }

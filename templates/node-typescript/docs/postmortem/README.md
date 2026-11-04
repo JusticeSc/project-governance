@@ -2,7 +2,7 @@
 
 English | [中文](README.zh.md)
 
-Incident write-ups: a bug reached a place it should not have (a published index, a merged change, a user's market), and the interesting part is *why our process let it through*, not just the one-line fix.
+Incident write-ups: a bug reached a place it should not have, such as a release, merged change, or user's data. The interesting part is *why our process let it through*, not just the one-line fix.
 
 A post-mortem is NOT an [Agent Note](../../.agents/notes/README.md) (which records a deliberate design decision and its rejected alternatives, or proposes future work). It is a backward-looking record of a failure: what broke, the mechanism, why every safety net missed it, and the concrete guardrails added so the same class of bug fails loudly next time.
 

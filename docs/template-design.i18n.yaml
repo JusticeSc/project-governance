@@ -3,23 +3,23 @@
 # After editing either side, bring the other along and re-record with:
 #   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/template-design.md
 /node-typescript-governance-template-contract:
-  en: 978a138cf2dab2e0
-  zh: 58dcef49ab77bde8
+  en: 05e358676f2d8250
+  zh: 0131e4788b4e70c6
 /node-typescript-governance-template-contract/workspaces-and-runtime-contract:
-  en: 2f6009fdf48d5753
-  zh: 9113faf49ee93cf1
+  en: 1a3717dd38c1fde8
+  zh: 5beee1bccf1b2c64
 /node-typescript-governance-template-contract/direct-new-project-starting-point:
-  en: 9e06d353aa9291fc
-  zh: 23dc580577ad903e
+  en: 47794c3e1baaf2a0
+  zh: 692d0768fa0422ba
 /node-typescript-governance-template-contract/toolchain-and-source-artifact-planes:
-  en: ba208e0025b27140
-  zh: a919d99feb985c76
+  en: 69b51c778c45133b
+  zh: 6e02492ac90d36a0
 /node-typescript-governance-template-contract/gates-documentation-and-review:
-  en: 2aa3c685f8ba9123
-  zh: 22089671d4756ae9
+  en: 358af6daf84b6006
+  zh: 1e667c0250d4d96d
 /node-typescript-governance-template-contract/what-the-product-verifies-and-what-it-does-not:
-  en: 1780b640bddfc0ed
-  zh: f001a7f357c6880b
+  en: 8999858212e68ffa
+  zh: 1885b4fe0f392e36
 /node-typescript-governance-template-contract/acceptance-for-this-binding:
-  en: 1fc8613c34e55b79
-  zh: 388b3ae1dda3bc50
+  en: 2f316b5fe8b0882f
+  zh: a8ca6caa65f0aefc

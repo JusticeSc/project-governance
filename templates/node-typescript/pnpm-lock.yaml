@@ -108,59 +108,6 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
-  apps/plugin-market-generator:
-    dependencies:
-      '@deepseek-ai/dsh-plugin-market-index':
-        specifier: workspace:*
-        version: link:../../packages/util/plugin-market-index
-      commander:
-        specifier: ^15.0.0
-        version: 15.0.0
-      hosted-git-info:
-        specifier: ^9.0.3
-        version: 9.0.3
-      resolve.exports:
-        specifier: ^2.0.3
-        version: 2.0.3
-      semver:
-        specifier: ^7.8.5
-        version: 7.8.5
-      tar:
-        specifier: ^7.5.22
-        version: 7.5.22
-      yaml:
-        specifier: ^2.9.0
-        version: 2.9.0
-    devDependencies:
-      '@types/hosted-git-info':
-        specifier: ^3.0.5
-        version: 3.0.5
-      '@types/semver':
-        specifier: ^7.8.0
-        version: 7.8.0
-      tsx:
-        specifier: ^4.22.4
-        version: 4.23.13
-
-  packages/util/plugin-market-index:
-    dependencies:
-      npm-package-arg:
-        specifier: ^13.0.2
-        version: 13.0.2
-      semver:
-        specifier: ^7.8.5
-        version: 7.8.5
-      validate-npm-package-name:
-        specifier: ^7.0.2
-        version: 7.0.2
-    devDependencies:
-      '@types/npm-package-arg':
-        specifier: ^6.1.4
-        version: 6.1.4
-      '@types/semver':
-        specifier: ^7.8.0
-        version: 7.8.0
-
 packages:
 
   '@antfu/install-pkg@1.1.0':

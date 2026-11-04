@@ -5,7 +5,7 @@ description: Design or review product-user-visible GUI changes: visual token own
 
 # Client UI/UX
 
-This is judgment guidance, not a complete checklist or design approval. Read [architecture](../../../docs/architecture.md), the affected application's component/data/store/effect contracts, and [conditional domain rules](../../../docs/defensive-patterns/conditional-domains.md) before implementation. Copy coverage follows [dsh-prose-standard](../dsh-prose-standard/SKILL.md); failure guarantees follow [dsh-error-handling](../dsh-error-handling/SKILL.md). The CLI example does not provide a UI framework, token set, notification host, locale dictionary, or browser harness: identify and implement their actual owners when introducing a GUI, rather than pretending source product components exist.
+This is judgment guidance, not a complete checklist or design approval. Read [architecture](../../../docs/architecture.md), the affected application's component/data/store/effect contracts, and [conditional domain rules](../../../docs/defensive-patterns/conditional-domains.md) before implementation. Copy coverage follows [dsh-prose-standard](../dsh-prose-standard/SKILL.md); failure guarantees follow [dsh-error-handling](../dsh-error-handling/SKILL.md). Identify the actual owners of UI frameworks, tokens, notifications, locale data and browser harnesses when introducing a GUI.
 
 ## Architecture prerequisites
 

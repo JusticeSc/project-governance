@@ -150,7 +150,8 @@ describe('plain Node artifact consumers', () => {
   })
 
 
-  it('rejects a missing published artifact through hygiene and accepts its exact restoration', async ({ signal }) => {
+  it.skipIf(!readWorkspaceManifests(root).some(({ dir }) => /^packages\/[^/]+\/[^/]+$/.test(dir)))(
+    'rejects a missing published artifact through hygiene and accepts its exact restoration', async ({ signal }) => {
     const temporary = mkdtempSync(join(tmpdir(), 'built-hygiene-'))
     const checkout = join(temporary, 'checkout')
     const dependencyLink = join(checkout, 'node_modules')

@@ -18,7 +18,6 @@
 |---|---|
 | 生成、抓取、缓存、输出写入、错误处理、时序、配置、子进程、teardown | [general.md](general.zh.md) |
 | 包导出、包形态、构建面、依赖声明 | [packages/AGENTS.md](../../packages/AGENTS.md) 与[开发指南](../development.zh.md#typescript-project-layout) |
-| 索引格式及其校验器类型 | [格式 Agent Note](../../.agents/notes/implemented/feature/2026-10-02-plugin-market-index-format.zh.md) 与[包 README](../../packages/util/plugin-market-index/README.zh.md) |
 | UI 身份、共享控件、样式、远程合同、恢复、派生 projection 或显示资源 | [conditional-domains.md](conditional-domains.zh.md)；仅激活实际对象对应的规则 |
 
 [dsh-code-review](../../.agents/skills/dsh-code-review/SKILL.md) 在审查 pull request 时阅读本目录，根 [AGENTS.md](../../AGENTS.md) 将变更路由到这里。

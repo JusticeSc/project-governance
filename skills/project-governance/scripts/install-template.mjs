@@ -1,6 +1,6 @@
-import { constants, copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, rmdirSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
+import { constants, copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, relative, resolve, sep } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 
 // The compressed archive contains only files exported by the product's fixed-template exporter.
@@ -13,52 +13,67 @@ function stageTemplate(destination) {
     const [name, kind, content] = entry
     if (typeof name !== 'string' || name.includes('\\') || name.includes(':') ||
         name.split('/').some(part => !part || part === '.' || part === '..') || names.has(name) ||
-        typeof content !== 'string' || !['file', 'link'].includes(kind)) {
+        typeof content !== 'string' || kind !== 'file') {
       throw new Error(`Invalid template path or entry: ${name}`)
     }
-    if (kind === 'link' && (name !== '.claude/skills' || content !== '../.agents/skills')) {
-      throw new Error(`Invalid template link: ${name}`)
-    }
-    if (kind === 'file' && (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(content))) {
+    if (!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(content)) {
       throw new Error(`Invalid template file encoding: ${name}`)
     }
     names.add(name)
   }
   mkdirSync(destination)
-  for (const [name, kind, content] of entries) {
+  for (const [name, , content] of entries) {
     const path = join(destination, ...name.split('/'))
     mkdirSync(dirname(path), { recursive: true })
-    if (kind === 'link') symlinkSync(content, path, 'dir')
-    else writeFileSync(path, Buffer.from(content, 'base64'), { flag: 'wx' })
+    writeFileSync(path, Buffer.from(content, 'base64'), { flag: 'wx' })
   }
   return { destination, files: [...names] }
 }
 
-function planTree(source, destination, relative, actions, conflicts) {
+function planTree(source, destination, path, actions, conflicts, redirects) {
   for (const entry of readdirSync(source, { withFileTypes: true })) {
     const input = join(source, entry.name)
     const output = join(destination, entry.name)
-    const name = relative ? `${relative}/${entry.name}` : entry.name
+    const name = path ? `${path}/${entry.name}` : entry.name
     const existing = lstatSync(output, { throwIfNoEntry: false })
-    if (entry.isDirectory()) {
-      if (existing && (!existing.isDirectory() || existing.isSymbolicLink())) {
+    if (existing?.isSymbolicLink() &&
+        (entry.isDirectory() || statSync(output, { throwIfNoEntry: false })?.isDirectory())) {
+      conflicts.push(name)
+      redirects.push(name)
+    } else if (entry.isDirectory()) {
+      if (existing && !existing.isDirectory()) {
         conflicts.push(name)
         continue
       }
       if (!existing) actions.push({ kind: 'directory', input, output })
-      planTree(input, output, name, actions, conflicts)
+      planTree(input, output, name, actions, conflicts, redirects)
     } else if (existing) {
       conflicts.push(name)
     } else {
-      actions.push({ kind: entry.isSymbolicLink() ? 'link' : 'file', input, output })
+      actions.push({ kind: 'file', input, output })
     }
   }
 }
 
-function rollback(created) {
+// Check every inner ancestor before writing or removing a path. The target
+// itself is canonicalized when it already exists, so root aliases remain valid.
+function requireSafeParents(destination, output) {
+  if (output === destination) return
+  let directory = destination
+  for (const part of ['', ...relative(destination, dirname(output)).split(sep).filter(Boolean)]) {
+    if (part) directory = join(directory, part)
+    const current = lstatSync(directory)
+    if (current.isSymbolicLink() || !current.isDirectory()) {
+      throw new Error(`Target directory was redirected or changed: ${directory}`)
+    }
+  }
+}
+
+function rollback(created, destination) {
   const remaining = []
   for (const item of created.reverse()) {
     try {
+      requireSafeParents(destination, item.output)
       if (item.kind === 'directory') {
         const current = lstatSync(item.output, { throwIfNoEntry: false })
         if (!current) continue
@@ -70,9 +85,7 @@ function rollback(created) {
         const current = lstatSync(item.output, { throwIfNoEntry: false })
         if (!current) continue
         const sameIdentity = item.identity && item.identity.ino !== 0 && current.ino === item.identity.ino && current.dev === item.identity.dev
-        const unchanged = item.kind === 'link'
-          ? current.isSymbolicLink() && readlinkSync(item.output) === readlinkSync(item.input)
-          : current.isFile() && readFileSync(item.output).equals(readFileSync(item.input))
+        const unchanged = current.isFile() && readFileSync(item.output).equals(readFileSync(item.input))
         if (!sameIdentity || !unchanged) throw new Error('Created path has changed')
         unlinkSync(item.output)
       }
@@ -83,9 +96,9 @@ function rollback(created) {
   return remaining
 }
 
-function installTemplate(output) {
-  if (typeof output !== 'string' || output.trim() === '') {
-    throw new Error('usage: node <skill-dir>/scripts/install-template.mjs <project-directory>')
+function installTemplate(output, addMissing) {
+  if (typeof output !== 'string' || output.trim() === '' || output.startsWith('--')) {
+    throw new Error('usage: node <skill-dir>/scripts/install-template.mjs [--add-missing] <project-directory>')
   }
   const requested = resolve(output)
   const existing = lstatSync(requested, { throwIfNoEntry: false })
@@ -97,16 +110,24 @@ function installTemplate(output) {
     const staged = stageTemplate(join(temporary, 'template'))
     const actions = existing ? [] : [{ kind: 'directory', output: destination }]
     const conflicts = []
-    planTree(staged.destination, destination, '', actions, conflicts)
-    if (conflicts.length) throw new Error(`Existing paths prevent installation; no project files were changed:\n${conflicts.map(path => `  ${path}`).join('\n')}`)
+    const redirects = []
+    planTree(staged.destination, destination, '', actions, conflicts, redirects)
+    const list = conflicts.map(path => `  ${path}`).join('\n')
+    if (redirects.length) {
+      throw new Error(`Redirected target directories prevent installation; no project files were changed. Existing conflicts:\n${list}`)
+    }
+    if (conflicts.length && !addMissing) {
+      throw new Error(`Existing paths prevent installation; no project files were changed:\n${list}`)
+    }
+    if (conflicts.length) console.error(`Existing conflicts (not overwritten):\n${list}`)
 
     const created = []
     let attempted
     try {
       for (const action of actions) {
         attempted = action
+        requireSafeParents(destination, action.output)
         if (action.kind === 'directory') mkdirSync(action.output)
-        else if (action.kind === 'link') symlinkSync(readlinkSync(action.input), action.output, 'dir')
         else copyFileSync(action.input, action.output, constants.COPYFILE_EXCL)
         const item = { ...action }
         created.push(item)
@@ -114,21 +135,30 @@ function installTemplate(output) {
         attempted = undefined
       }
     } catch (error) {
-      const remaining = rollback(created)
-      if (attempted && lstatSync(attempted.output, { throwIfNoEntry: false }) && !remaining.includes(attempted.output)) remaining.push(attempted.output)
+      const remaining = rollback(created, destination)
+      if (attempted && !remaining.includes(attempted.output)) remaining.push(attempted.output)
       const recovery = remaining.length ? `\nPaths requiring review: ${remaining.join(', ')}` : '\nCreated paths were removed.'
       throw new Error(`${error.message}${recovery}`, { cause: error })
     }
-    return { destination, files: staged.files }
+    return { destination, copied: actions.filter(action => action.kind === 'file').length, conflicts }
   } finally {
     rmSync(temporary, { recursive: true, force: true })
   }
 }
 
 try {
-  if (process.argv.length !== 3) throw new Error('usage: node <skill-dir>/scripts/install-template.mjs <project-directory>')
-  const result = installTemplate(process.argv[2])
-  console.log(`Installed ${result.files.length} template author files to ${result.destination}; no dependencies, hooks or build outputs.`)
+  const args = process.argv.slice(2)
+  const addMissing = args[0] === '--add-missing'
+  if (args.length !== (addMissing ? 2 : 1)) {
+    throw new Error('usage: node <skill-dir>/scripts/install-template.mjs [--add-missing] <project-directory>')
+  }
+  const result = installTemplate(args[addMissing ? 1 : 0], addMissing)
+  if (result.conflicts.length) {
+    console.log(`Partial installation: added ${result.copied} template author files to ${result.destination}; ${result.conflicts.length} conflicts remain for reconciliation.`)
+    process.exitCode = 3
+  } else {
+    console.log(`Installed ${result.copied} template author files to ${result.destination}; no dependencies, hooks or build outputs.`)
+  }
 } catch (error) {
   console.error(`install-template: ${error.message}`)
   process.exitCode = 1

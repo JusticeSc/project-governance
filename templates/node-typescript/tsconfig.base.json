@@ -24,7 +24,7 @@
     "types": ["node"],
     "paths": {
       // BEGIN generated package aliases — pnpm run gen-tsconfig-paths
-      "@deepseek-ai/dsh-plugin-market-index": ["./packages/util/plugin-market-index/src"]
+
       // END generated package aliases
     }
   }

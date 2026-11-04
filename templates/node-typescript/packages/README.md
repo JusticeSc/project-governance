@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The toolkit is assembled from npm packages under `packages/`, grouped by capability family. This checkout has one group: [`util/`](util/README.md), which holds shared primitives consumed by the apps and by future packages. Use this page as the top-level map: find the owning group, then open its README for the package list. Every package is scoped `@deepseek-ai/dsh-*` and lives in exactly one group; each group README is the authoritative package map for its family.
+Libraries belong under `packages/<group>/<package>/`, grouped by their actual capability family. This project currently has no package groups or libraries. When a requested behavior needs a library, use this page to find its group and that group's README for its package list; each group README is the authoritative map for its family. Package names come from their manifests, not a required source-project scope.
 
 ## Table of Contents
 
@@ -24,27 +24,22 @@ The toolkit is assembled from npm packages under `packages/`, grouped by capabil
 <a id="package-groups"></a>
 ## Package groups
 
-Every package lives in exactly one group; new packages join existing groups, and a new group updates its own README and this table.
-
-| Group | Role |
-|---|---|
-| [`util/`](util/README.md) | Low-level libraries shared across the workspace: the format-1 validator and any future zero-domain primitive |
+Every package lives in exactly one group. Reuse a group when its role fits; a new group updates its own bilingual README and this navigation. There are no declared package groups yet; add navigation only when a real group owns a package. Follow [adding a package](../docs/cookbook/adding-a-package.md) for registration and documentation.
 
 -----
 
 <a id="release-expectations"></a>
 ## Release expectations
 
-A package's manifest declares its publication intent. The validator is a publishable library with a public `publishConfig` and a `repository` entry; the generator app is `private` and is not published. Public APIs are pre-stable: update all in-repository consumers in the same change; externally observable breaks follow the [upgrade-guide workflow](../.agents/skills/dsh-create-upgrade-guide/SKILL.md). There is no experimental group in this checkout.
+A package's manifest declares its publication intent. Libraries follow the repository's publication rules; applications are private. Update all in-repository consumers with a changed contract; externally observable breaks follow the [upgrade-guide workflow](../.agents/skills/dsh-create-upgrade-guide/SKILL.md) when its conditions apply. Release and registry publication require their own authorization and evidence.
 
 -----
 
 <a id="dependencies"></a>
 ## Dependencies
 
-Dependencies point from the app and higher-level packages toward `util/`; the reverse dependency does not exist. A `util/` package registers no app service and owns no product state, so its consumers keep the domain semantics.
+Dependencies follow actual responsibilities: a library does not depend on an application. Declare dependencies at their owning member and review cross-package contracts and policy classifications when introducing them.
 
-- The app depends on the validator for parsing and install arguments; the validator's [manifest](util/plugin-market-index/package.json) owns its external dependencies.
 - Workspace dependencies use `workspace:*`.
 - A new dependency needs a current consumer that cannot reasonably use the standard library; `pnpm run constraints` checks the declared graph. A maintained replacement follows [the replacement workflow](../docs/development.md#replacing-maintained-code-with-a-dependency), which owns semantic comparison, integration evidence and removal of obsolete owned code.
 

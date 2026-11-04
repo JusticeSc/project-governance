@@ -287,9 +287,11 @@ export function parseTranslationMarkdown(content: string): Nodes {
   return fromMarkdown(content, { extensions: [gfm()], mdastExtensions: [gfmFromMarkdown()] })
 }
 
-/** Return the accepted relative and public-repository links to one counterpart. */
+/** Return accepted links to one counterpart; a public repository URL is optional. */
 export function languageSwitcherTargets(counterpart: string, blobRoot: string = publicRepositoryBlobRoot): string[] {
-  return [basename(counterpart), `${blobRoot}${counterpart}`]
+  const targets = [basename(counterpart)]
+  if (blobRoot !== '') targets.push(`${blobRoot}${counterpart}`)
+  return targets
 }
 
 /** Generated English sources cannot carry a switcher without making their generator stale. */

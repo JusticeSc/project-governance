@@ -5,18 +5,18 @@
 /safety:
   en: a374f70c56b3f221
   zh: a07f7a9ba9af40fc
-/safety/experimental-status:
-  en: b2bbb2f2fb4204e7
-  zh: da5ca092b623de64
-/safety/what-the-tools-access:
-  en: 9a084bedf6f804d7
-  zh: 7ef101bdb55d6a0f
-/safety/trust-boundaries:
-  en: a758c83ce4051885
-  zh: e9238ad7c7925eec
+/safety/scope-and-guarantees:
+  en: 9b2131502cc93e1c
+  zh: af8e57d5c6389062
+/safety/commands-and-external-services:
+  en: bfa73adef409be88
+  zh: 61f0f07fb9fd9be6
+/safety/files-and-persistent-data:
+  en: 7462f19fe0082c4d
+  zh: 79a1fd5f70de2900
 /safety/responsible-use:
-  en: 5e1609212602bbb4
-  zh: c79eb0e6e4ef2c50
+  en: 8b00ef25409f5aab
+  zh: b19d9f1299acabec
 /safety/no-warranty-or-liability:
-  en: 7df644c85ccfea43
-  zh: a062b14b963023a1
+  en: 4d1d03b6c2eef57c
+  zh: f033006af6191b84

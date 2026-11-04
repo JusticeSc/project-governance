@@ -4,7 +4,6 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs'
 import { parseArgs } from 'node:util'
 import { classifyPersistenceChange, parsePersistenceSnapshot, type PersistenceTypeChange } from './persistence-changes.ts'
 import { canonicalizeSchema, schemaDigest, type CanonicalSchema, type PersistenceSchemaInventory, type SchemaNode } from './persistence-schema-model.ts'
-import { sourceKindGroups } from './persistence-source-policy.ts'
 
 /** One structural observation, shared across its containing roots. */
 export interface PersistenceReviewEvidence {
@@ -41,6 +40,23 @@ function selector(schema: CanonicalSchema, index: number): string | undefined {
     return value?.kind === 'literal' && typeof value.value === 'string' ? [`[${name}=${JSON.stringify(value.value)}]`] : []
   })
   return parts.length === 0 ? undefined : parts.join('')
+}
+
+function kindGroups(nodes: readonly SchemaNode[], index: number): Map<string, number[]> | undefined {
+  const source = nodes[index]
+  const alternatives = source?.kind === 'union' ? source.types : [index]
+  const groups = new Map<string, number[]>()
+  for (const alternative of alternatives) {
+    const node = nodes[alternative]
+    if (node?.kind !== 'object') return undefined
+    const property = node.properties.find(property => property.name === 'kind')
+    const kind = property === undefined ? undefined : nodes[property.type]
+    if (property?.optional !== false || kind?.kind !== 'literal' || typeof kind.value !== 'string' || kind.value.length === 0) return undefined
+    const group = groups.get(kind.value) ?? []
+    group.push(alternative)
+    groups.set(kind.value, group)
+  }
+  return groups
 }
 
 function propertyPath(path: string, name: string): string {
@@ -104,7 +120,6 @@ export function reviewPersistenceSchemas(before: PersistenceSchemaInventory, aft
             continue
           }
           if (previous.optional !== next.optional) emit(next.optional ? 'property-made-optional' : 'property-made-required', left, right, child, name)
-          if (JSON.stringify(previous.compatibility) !== JSON.stringify(next.compatibility)) emit('source-policy-changed', left, right, child, name)
           walk(previous.type, next.type, child, active)
         }
         const oldIndices = new Map(oldNode.indices.map(index => [digest('before', index.key), index]))
@@ -150,8 +165,8 @@ export function reviewPersistenceSchemas(before: PersistenceSchemaInventory, aft
           matchedOld.add(previous)
           matchedNew.add(next)
         }
-        const oldKinds = sourceKindGroups(oldSchema.nodes, left)
-        const newKinds = sourceKindGroups(newSchema.nodes, right)
+        const oldKinds = kindGroups(oldSchema.nodes, left)
+        const newKinds = kindGroups(newSchema.nodes, right)
         for (const [side, indices, matched, schema] of [
           ['before', removed, matchedOld, oldSchema], ['after', added, matchedNew, newSchema],
         ] as const) {

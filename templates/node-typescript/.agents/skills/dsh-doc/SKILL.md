@@ -7,7 +7,7 @@ description: Create, restructure, review, audit, or migrate Markdown documentati
 
 ## Summary
 
-Make every page searchable, newcomer-readable, and exact enough for maintainers: place each fact with its owner, keep the reader path brief, and never let prose drift from the code it describes. Apply repository `AGENTS.md` files and the executed gates first, then this workflow for metadata, progressive detail, bilingual alignment, and corpus audits. The `plugin-market-index` README pair is the reference example of a package page: executable rules described from the consumer's point of view, with implementation folded away.
+Make every page searchable, newcomer-readable, and exact enough for maintainers: place each fact with its owner, keep the reader path brief, and never let prose drift from the code it describes. Apply repository `AGENTS.md` files and the executed gates first, then this workflow for metadata, progressive detail, bilingual alignment, and corpus audits. Describe actual package rules from the consumer's point of view.
 
 ## Table of Contents
 
@@ -59,7 +59,7 @@ Kind metadata selects the page's template. Open the template before writing and 
 
 Cross-cutting pages under `docs/` follow the tier rules in [docs/AGENTS.md](../../../docs/AGENTS.md); they do not need a package template. Skills, Agent Notes, and postmortems are owned by their directories. Add a new kind only with a distinct template, a documented repository position, and a focused check that maps documents to it.
 
-README classification is owned by `scripts/package-readme-policy.manifest.json`: `allowedKinds`, `groupKind`, `defaultPackageKind`, and reasoned `packageKinds` assignments. Read actual manifests and entries to justify the assigned kind; a policy label does not create a plugin or bundle host. The current ordinary library remains explicitly classified as a library. Runtime-host kinds are callable conditional templates, not a requirement to adopt Cordis. Actual persisted-type acknowledgements use the separate non-README `persistence-change` kind; `upgrade-guide` separately owns externally perceptible reader migration. Do not invent persistence-release or historical-format objects.
+README classification is owned by `scripts/package-readme-policy.manifest.json`: `allowedKinds`, `groupKind`, `defaultPackageKind`, and reasoned `packageKinds` assignments. Read actual manifests and entries to justify each kind; a policy label does not create a plugin or bundle host. This template has no package-specific assignments and defaults new package READMEs to `package-reference`; assign `package-library` when a real plain library has no runtime host surface. Runtime-host kinds are conditional, not a requirement to adopt Cordis. Actual persisted-type acknowledgements use the separate non-README `persistence-change` kind; `upgrade-guide` separately owns externally perceptible reader migration. Do not invent persistence-release or historical-format objects.
 
 ## Page structure
 
@@ -73,14 +73,14 @@ README classification is owned by `scripts/package-readme-policy.manifest.json`:
 
 The same policy's `noModelExperience` is a reasoned audited exemption equivalent to the source generic/model-agnostic no-section registry. It may omit Model Experience; `sentenceModelExperience` owns approved none/indirect statements. `noLimitations` is independent: a model exemption never implies a limitation exemption. Honor the actual policy, not an unconditional “all libraries omit” or “all packages must add” rule. Current absence of model business never permits inventing model behavior.
 
-An example/installation style section must describe the real artifact. For this repository, a library is consumed as a dependency and a CLI app is run from the checkout or its built binary; there is no profile install, hosted discovery page, or model-visible registration.
+An example or installation section must describe the real artifact and its actual consumption path. Do not invent installation, hosted discovery, or model-visible registration.
 
 ## Voice and judgment
 
 - **Summary says what the subject does.** The opening Summary and user-facing sections describe outcomes, benefits, and when to choose the subject, never its role, type, or internal identity.
 - **Developer sections explain, never enumerate.** Fold implementation content to the concept, architecture, and data flow; link code for exact detail. No full API catalogs, exhaustive column lists, event-payload enumerations, or JSDoc restatement.
 - **Current state only.** Ordinary documentation describes the current codebase. Historical evidence belongs in its dedicated record, and the Dev Note is the only non-authoritative zone.
-- **One owner per fact.** The format lives in its Agent Note, the rules in the validator, the wiring in the app, and the shared types in their module. Link the owner rather than duplicating it.
+- **One owner per fact.** Link the real owner of a contract, validation rule, shared type, or application wiring rather than duplicating it.
 - **Defensive prose.** State non-obvious contracts, limits, and failure behavior. Delete implementation narration, test walkthroughs, review history, and duplicated rationale.
 - **Truthful provenance.** Keep source license and attribution statements accurate. Do not claim a consumer, service, deployment, or enforcement that this repository does not contain.
 

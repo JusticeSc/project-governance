@@ -16,6 +16,16 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
+          node-version: '24'
+      - name: Prepare the template runtime and offline cache
+        working-directory: templates/node-typescript
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+        run: |
+          node -e "require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'PROJECT_GOVERNANCE_TEMPLATE_NODE=' + process.execPath + '\n')"
+          corepack pnpm install --frozen-lockfile --ignore-scripts
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
           node-version: ${{ matrix.node }}
       - run: npm ci --ignore-scripts
       - run: npm run check

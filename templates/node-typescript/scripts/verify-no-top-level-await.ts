@@ -213,12 +213,10 @@ export function findTopLevelAwaits(file: string, sourceText: string): TopLevelAw
  * @param repositoryRoot - absolute repository root.
  * @param pattern - corpus glob; only tests pass another value, to prove a narrowed glob is refused.
  * @returns repository-relative POSIX paths, sorted.
- * @throws when the corpus is empty, contains no TSX file, or leaves out a package `src/` directory
- * that holds TypeScript sources, because the gate would then pass by scanning less than it claims.
+ * @throws when the corpus leaves out existing package or application TypeScript source files.
  */
 export function sourceCorpus(repositoryRoot: string = root, pattern: string = SOURCE_GLOB): string[] {
   const files = globSync(pattern, { cwd: repositoryRoot }).map(file => file.replaceAll('\\', '/')).sort()
-  if (files.length === 0) throw new Error(`${GATE}: scanned an empty corpus; ${pattern} no longer matches.`)
   const expected = new Set<string>()
   const walk = (directory: string): void => {
     for (const entry of readdirSync(join(repositoryRoot, directory), { withFileTypes: true })) {

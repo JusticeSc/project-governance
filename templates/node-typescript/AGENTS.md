@@ -1,11 +1,11 @@
 # AGENTS.md
 
-This Node.js/TypeScript governance template includes a complete plugin-market example derived from DeepSeek Harness. For a new business or replacement of the example, read [Start a different project](docs/cookbook/starting-a-project.md). Read [the architecture](docs/architecture.md) before changing workspaces and [the documentation standard](docs/AGENTS.md) before changing prose.
+This Node.js/TypeScript governance template starts without business applications or libraries. Follow [Start a project](docs/cookbook/starting-a-project.md) for the first user-requested behavior, [the architecture](docs/architecture.md) before changing workspaces, and [the documentation standard](docs/AGENTS.md) before changing prose.
 
 ## Standing orders
 
 - **One behavior, one change.** Update every consumer, test, and owning document the behavior reaches. Preserve source behavior unless the request explicitly changes it.
-- **The format has one owner.** The [format Agent Note](.agents/notes/implemented/feature/2026-10-02-plugin-market-index-format.md) defines format 1; `packages/util/plugin-market-index/src/types.ts` owns its TypeScript types, including the single `LocalizedText` definition. Readers, generators, and apps import these types from the package; do not redeclare them.
+- **One owner for each contract.** Define each real data format and shared type at its owning module or decision record; consumers import the shared definitions rather than redeclaring them.
 - **Validate at untrusted boundaries.** Validate JSON documents, registry responses, tarball entries, Git trees, manifests, command-line input, and file contents. Trust TypeScript at typed same-process boundaries; do not add runtime checks or hostile-input tests only for values the static interface already requires.
 - **Typed failures.** Expected failures use declared error types and stable discriminants; never route handling by parsing a message. Preserve causes, keep machine identity separate from display text, and stop dependent work when state is unknown. An empty `catch` names the error and why, and its `try` holds one statement.
 - **One source of truth.** One read path for a fact, one owner for shared state. A module-level cache, singleton, `globalThis` field, or `Symbol.for` key hides its owner; put shared state on an object with a lifecycle.
@@ -19,12 +19,10 @@ This Node.js/TypeScript governance template includes a complete plugin-market ex
 - **Unlink link-shaped paths.** Remove a possible symlink or Windows junction with `lstatSync().isSymbolicLink()` then `unlinkSync`; reserve recursive removal for a known real directory.
 - **Prefer a maintained dependency over hand-rolling** when it genuinely deletes owned code and tests.
 - **No abstraction without a current consumer.** Tie every option, state machine, defensive copy, compatibility path, and public operation to a current contract or caller; otherwise defer it.
-- **Deterministic output.** The generator's index and icon bytes depend only on the source list and remote state: stable entry order, atomic writes, rewrite only on content change, and caches keyed by immutable inputs.
-- **No package code execution.** The generator reads package files as data. It never installs, runs scripts, checks out a working tree, or follows symlinks out of a package.
-- **ESM only.** Every workspace is `"type": "module"`; use package names across workspaces and explicit `.ts` specifiers in source-relative imports. The compiler rewrites them to `.js` in emitted JavaScript.
-- **Source plane and artifact plane stay distinct.** Source tests and the source launcher resolve workspace imports through the root tsconfig `paths` map to `src`. Packed consumers use only the package root export, which points at `lib/`. The validator package intentionally does not export `./src/*`; a packed consumer cannot import its TypeScript source. Do not add a compatibility subpath or `src/**` to `files`.
+- **ESM only.** Every workspace is `"type": "module"`; use package names across workspaces and explicit source extensions (`.ts` or `.tsx`) in source-relative imports. Emitted imports must resolve to the corresponding built JavaScript.
+- **Source plane and artifact plane stay distinct.** Source tests and source launchers resolve workspace imports through the root tsconfig `paths` map to `src`. Packed consumers use the declared built exports under `lib/`; do not expose source subpaths or ship source as a workaround.
 - **Errors and reports are actionable.** Name the JSON path or source that failed, the violated rule, and what remains safe. Do not suppress a failure into a partial success.
-- **Tests describe behavior.** Change obsolete behavior with its tests and say why. Every new source line needs a behavior test; package runtime code carries a per-file coverage gate at 100%, while the app is proven by behavior specs and entry-point checks.
+- **Tests describe behavior.** Change obsolete behavior with its tests and say why. Every new source line needs a behavior test; package runtime code carries a per-file coverage gate at 100%, while applications are proven by behavior specs and real entry-point checks.
 - **Keep comments local and complete.** State the contract, failure mode, timing, ownership, or non-obvious reason; delete narration, test walkthroughs, review history, and code restatement.
 - **Document current state.** History belongs in commits, Agent Notes, or post-mortems. Docs and comments name live mechanisms.
 - **Create Agent Notes only for durable decision rationale;** mechanical and local edits are exempt. Archived notes are frozen history, never current authority ([rules](.agents/notes/README.md)).
@@ -35,17 +33,15 @@ This Node.js/TypeScript governance template includes a complete plugin-market ex
 ## Repository layout
 
 ```text
-apps/plugin-market-generator/   CLI: source list -> validated format-1 index and icons
-packages/util/plugin-market-index/  Format-1 validator and install-argument builder
-  src/                          Source; tests live in the package tests/
-  tests/                        Vitest specs, owned by the package or app
+apps/<app>/                     Application source and owned tests, when needed
+packages/<group>/<package>/     Library source and owned tests, when needed
 .agents/                        Agent skills and Agent Notes
 docs/                           Development, architecture, testing, review rules, cookbook
 scripts/                        Node build, gate, and documentation scripts
 .github/                        Inherited review and workflow configuration
 ```
 
-The example retains its source package names; a new project chooses its own names. Root manifest version and license apply to all declared workspace members. Libraries are publishable and apps private in this binding. New libraries belong under `packages/<group>/<package>/` and join their group README; new apps belong under `apps/`.
+The workspace starts without business members. Root manifest version and license apply to all declared workspace members. Libraries are publishable and apps private in this binding. New libraries belong under `packages/<group>/<package>/` and join their group README; new apps belong under `apps/`.
 
 ## Commands
 
@@ -67,24 +63,18 @@ pnpm run doc-typecheck         # compile documentation TypeScript examples
 pnpm run test:docs
 pnpm run hygiene
 pnpm run check:all            # same gate aggregation as check:ci
-pnpm start --input <list> --output <json> --title <text>
-pnpm start:built --input <list> --output <json> --title <text>
 ```
 
-`package.json` and `scripts/run-gates.ts` own the current script and gate inventory. Match evidence to the surface: focused behavior tests, coverage for source, `doc-sync` for documentation, `build` plus a built-app run for published paths. Do not default to the full suite or repeat a passing check for a commit or push; CI owns the exhaustive matrix. Develop with `build:artifacts`; before claiming completion run `build:check` after the latest artifacts, or `build`.
+`package.json` and `scripts/run-gates.ts` own the current script and gate inventory. Match evidence to the surface: focused behavior tests, coverage for package runtime code, `doc-sync` for documentation, and built-entry checks when artifacts exist. Do not default to the full suite or repeat a passing check for a commit or push; CI owns the exhaustive matrix. Develop with `build:artifacts`; before claiming TypeScript completion run `build:check` after the latest artifacts, or `build`.
 
 `doc-sync` includes `doc-typecheck` and may compile project contracts; `test:docs` retains the build-free documentation checks and does not compile examples. See [testing policy](docs/testing.md#documentation-compilation) for snippet scope and [development](docs/development.md#verify-a-change) for compiler scheduling.
 
 ## Secrets
 
-The generator needs no API key. It does not apply `.npmrc` registry tokens; private Git repositories must be readable through a credential helper or an SSH agent. Never commit credentials or a populated `.env`.
+Never commit credentials or a populated `.env`. Introduce and document credentials only for actual integrations and authorized use.
 
 ## Conventions
 
-- **Validator first.** The generator hands every produced index to `parseMarketIndex` before writing it; a format violation is a generator bug, not a warning to publish.
-- **Install arguments are exact.** `marketInstallTarget` returns the pinned npm spec or commit-pinned Git spec; do not invent `latest` resolution in the generator.
-- **Cache keys name immutable inputs.** A cache entry is valid only for the same registry document identity, commit, directory, and output-affecting options. Damaged or rejected entries are rebuilt.
-- **Atomic, deterministic writes.** Write through a temporary sibling and rename; leave an unchanged file untouched.
 - **Package READMEs** follow the [kind, Summary, limitations and Model Experience contract](docs/cookbook/adding-a-package.md#4-write-the-package-readme); generated catalogs remain at their owner.
 - **Tests live under the owning package's `tests/`,** never `src/__tests__/`; `src/types.ts` contains types only.
 - **Package tsconfigs** extend `tsconfig.base.json`, set `rootDir: src` and `outDir: lib/types`, and reference workspace dependencies. The root `tsconfig.json` is the aggregate solution.

@@ -1,4 +1,4 @@
-import { constants, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync } from 'node:fs'
+import { constants, copyFileSync, existsSync, mkdirSync, realpathSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { packageFiles } from '@project-governance/distribution'
@@ -24,17 +24,7 @@ export function exportTemplate(output) {
     for (const path of files) {
       const target = resolve(destination, exportedPath(path))
       mkdirSync(dirname(target), { recursive: true })
-      if (path === `${prefix}.claude/skills`) {
-        const link = readFileSync(resolve(source, path), 'utf8').trim()
-        if (link !== '../.agents/skills') throw new Error('Invalid Claude skills link target in the template payload')
-        try {
-          symlinkSync(link, target, 'dir')
-        } catch (error) {
-          throw new Error(`Cannot create the Claude skills directory symlink; on Windows enable Developer Mode or use an account allowed to create symbolic links: ${error.message}`, { cause: error })
-        }
-      } else {
-        copyFileSync(resolve(source, path), target, constants.COPYFILE_EXCL)
-      }
+      copyFileSync(resolve(source, path), target, constants.COPYFILE_EXCL)
     }
   } catch (error) {
     if (created) rmSync(destination, { recursive: true, force: true })

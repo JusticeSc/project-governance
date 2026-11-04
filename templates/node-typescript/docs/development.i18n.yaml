@@ -3,14 +3,14 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/development.md
 /development-guide:
-  en: 9582d6bcd7912290
-  zh: 0082ba390185d659
+  en: 6a20f736dc274e4e
+  zh: 4d0c8d9f2e9805fd
 /development-guide/setup-tutorial:
   en: 5207d17725c07a27
   zh: 8ae77f4801a429a4
 /development-guide/setup-tutorial/prerequisites:
-  en: 56d601db6699c9de
-  zh: de3143d0355faab9
+  en: 392b6b7d32fcaeb5
+  zh: d4a4eea20395beff
 /development-guide/setup-tutorial/bootstrap-a-new-export:
   en: cab849bc5d614bb0
   zh: 972511889d6691ab
@@ -27,26 +27,20 @@
   en: a07467834cb5e9b8
   zh: 7cac5195ec157cc5
 /development-guide/contributor-reference/typescript-project-layout:
-  en: be6289917f475ec7
-  zh: 55164802d8a71d62
+  en: a981b59c49ca8648
+  zh: 83fffd22d49a3cad
 /development-guide/contributor-reference/source-plane-and-packed-artifact-plane:
-  en: 4b11f5cc94620d69
-  zh: cb3e351b6957a886
+  en: 0db88800f8c1179d
+  zh: 8e867fccd79005a3
 /development-guide/contributor-reference/verify-a-change:
-  en: 7a11d283ebab3959
-  zh: d4ea67c66aa43a49
+  en: 37ae8a4712584f61
+  zh: ff6a298ed04b8eae
 /development-guide/contributor-reference/git-integrations:
   en: 14f1d94c7f07a281
   zh: cd3c7c158deea300
 /development-guide/contributor-reference/ci-gates:
   en: 2bafc4141d2f1c8f
-  zh: 65c36184792807d4
-/development-guide/contributor-reference/generator-commands-and-side-effects:
-  en: 50ee65181c004fd0
-  zh: a77b959060b91a1b
-/development-guide/contributor-reference/environment-variables:
-  en: 08132e494bf69201
-  zh: e3f75698d65cdc0b
+  zh: 384a3ee6892f42ec
 /development-guide/contributor-reference/todo-markers:
   en: 945e51a6c022cdee
   zh: dad107f0913acd64

@@ -1,6 +1,6 @@
 ---
 name: dsh-archive-agent-notes
-description: Use when adding, auditing, pruning, archiving, restoring, or reviewing Agent Notes in this repository; checks every new note for superseded active records, deletes small or purely mechanical records, classifies other implemented notes by future decision value, deletes rejected notes that no longer prevent a tempting fallacy, and applies the frozen archived/{kind} triplet and manifest rules.
+description: Use when adding, auditing, pruning, archiving, restoring, or reviewing Agent Notes in this repository; checks every new note for superseded active records, deletes records only about small UI or purely mechanical changes, classifies other implemented notes by future decision value, deletes rejected notes that no longer prevent a tempting fallacy, and applies the frozen archived/{kind} triplet and manifest rules.
 ---
 
 # Archive Agent Notes

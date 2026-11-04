@@ -15,48 +15,79 @@ import {
 
 
 describe('workspace manifest discovery', () => {
-  it('checks root, app, runtime, tooling, and newly declared members while honoring exclusions', () => {
-    const root = mkdtempSync(join(tmpdir(), 'dsh-workspace-ranges-'))
+  it('checks root, application, package, and their declared workspace protocol', () => {
+    const root = mkdtempSync(join(tmpdir(), 'workspace-ranges-'))
     onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
-    const consumers = ['.', 'apps/cli', 'apps/web', 'apps/desktop', 'apps/desktop-host', 'benchmarks', 'website', 'python/sdk-runtime', 'tools/probe']
-    writeFileSync(join(root, 'pnpm-workspace.yaml'), [
-      'packages:', '  - packages/*/*', '  - apps/*', '  - apps/cli', '  - benchmarks',
-      '  - website', '  - python/sdk-runtime', '  - tools/*', '  - "!tools/excluded"',
-    ].join('\n'))
-    for (const dir of [...consumers, 'tools/excluded', 'unlisted/probe', 'packages/core/runtime']) {
+    const consumers = ['.', 'apps/console', 'apps/worker', 'packages/tools/probe']
+    const runtime = 'packages/core/runtime'
+    writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: ["packages/*/*", "apps/*"]')
+    for (const dir of [...consumers, runtime]) {
       mkdirSync(join(root, dir), { recursive: true })
-      writeFileSync(join(root, dir, 'package.json'), JSON.stringify(dir === 'packages/core/runtime'
-        ? { name: '@deepseek-ai/dsh-runtime' }
-        : { dependencies: { '@deepseek-ai/dsh-runtime': 'workspace:^' } }))
+      writeFileSync(join(root, dir, 'package.json'), JSON.stringify(dir === runtime
+        ? { name: '@fixture/runtime' }
+        : { dependencies: { '@fixture/runtime': 'workspace:^' } }))
     }
     const manifests = readWorkspaceManifests(root)
-    expect(manifests.map(entry => entry.dir).sort()).toEqual([...consumers, 'packages/core/runtime'].sort())
+    expect(manifests.map(entry => entry.dir).sort()).toEqual([...consumers, runtime].sort())
     expect(checkWorkspaceProtocol(manifests).sort()).toEqual(consumers.map(dir =>
-      `${dir}: dependencies.@deepseek-ai/dsh-runtime must use workspace:*, got workspace:^`).sort())
+      `${dir}: dependencies.@fixture/runtime must use workspace:*, got workspace:^`).sort())
+  })
+
+  it('rejects a declared member outside the app and library hierarchy', () => {
+    const root = mkdtempSync(join(tmpdir(), 'workspace-ranges-'))
+    onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
+    writeFileSync(join(root, 'package.json'), '{}')
+    writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: [apps/*, tools/*]')
+    mkdirSync(join(root, 'tools/probe'), { recursive: true })
+    writeFileSync(join(root, 'tools/probe/package.json'), '{}')
+    expect(() => readWorkspaceManifests(root)).toThrow(
+      'workspace member tools/probe is outside the apps/<app> or packages/<group>/<package> hierarchy',
+    )
+  })
+
+  it.each([
+    { owner: 'apps/console', nested: 'apps/console/tools/helper' },
+    { owner: 'packages/core/rules', nested: 'packages/core/rules/tools/helper' },
+  ])('rejects nested package manifests below $owner', ({ owner, nested }) => {
+    const root = mkdtempSync(join(tmpdir(), 'workspace-ranges-'))
+    onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
+    writeFileSync(join(root, 'package.json'), '{}')
+    writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: ["packages/*/*", "apps/*"]')
+    mkdirSync(join(root, owner), { recursive: true })
+    writeFileSync(join(root, owner, 'package.json'), '{}')
+    mkdirSync(join(root, nested), { recursive: true })
+    writeFileSync(join(root, nested, 'package.json'), '{}')
+    expect(() => readWorkspaceManifests(root)).toThrow(
+      `package manifest ${nested}/package.json is outside the apps/<app> or packages/<group>/<package> hierarchy`,
+    )
   })
 
   it.each(['', 'null', '{}', 'packages: []', 'packages: [false]', 'packages: [""]', 'packages: wrong'])(
     'rejects an invalid workspace declaration: %s', (contents) => {
-      const root = mkdtempSync(join(tmpdir(), 'dsh-workspace-ranges-'))
+      const root = mkdtempSync(join(tmpdir(), 'workspace-ranges-'))
       onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
       writeFileSync(join(root, 'pnpm-workspace.yaml'), contents)
       expect(() => readWorkspaceManifests(root)).toThrow('packages must be a non-empty list of workspace patterns')
     },
   )
 
-  it('rejects a declaration that matches no workspace members', () => {
-    const root = mkdtempSync(join(tmpdir(), 'dsh-workspace-ranges-'))
+  it('accepts an empty workspace but rejects an existing member excluded by its patterns', () => {
+    const root = mkdtempSync(join(tmpdir(), 'workspace-ranges-'))
     onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
+    writeFileSync(join(root, 'package.json'), '{}')
     writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: [missing/*]')
-    expect(() => readWorkspaceManifests(root)).toThrow('packages matched no workspace manifests')
+    expect(readWorkspaceManifests(root).map(member => member.dir)).toEqual(['.'])
+    mkdirSync(join(root, 'apps/cli/src'), { recursive: true })
+    writeFileSync(join(root, 'apps/cli/src/index.ts'), 'export const value = 1\n')
+    expect(() => readWorkspaceManifests(root)).toThrow('apps/cli')
   })
 })
 
 describe('workspace version coherence', () => {
   it.each([
-    { name: '@stockroom/stock-rules' },
-    { name: 'inventory-tools' },
-    { name: '@elsewhere/private-app', private: true },
+    { name: '@fixture/rules' },
+    { name: 'tool-package' },
+    { name: '@fixture/private-app', private: true },
     {},
   ])('rejects stale or missing versions independently of names and private status: %j', (identity) => {
     expect(checkWorkspaceVersion({ ...identity, version: '0.1.2-alpha.5' }, '0.1.2-rc.1'))
@@ -69,16 +100,15 @@ describe('workspace version coherence', () => {
     expect(checkWorkspaceVersion({}, undefined)).toContain('root version (missing)')
   })
 
-  it('enforces the root-owned version on all pnpm members, including applications and private tools', () => {
+  it('enforces the root-owned version on every declared member, including private apps', () => {
     const root = mkdtempSync(join(tmpdir(), 'workspace-versions-'))
     onTestFinished(() => { rmSync(root, { recursive: true, force: true }) })
-    writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: ["packages/*/*", "apps/*", "tools/*", "!tools/excluded"]')
+    writeFileSync(join(root, 'pnpm-workspace.yaml'), 'packages: ["packages/*/*", "apps/*"]')
     const members = [
-      { dir: '.', manifest: { name: 'stockroom-root', private: true, version: '1.2.3' } },
-      { dir: 'packages/stock/rules', manifest: { name: '@stockroom/stock-rules', version: '1.2.2' } },
-      { dir: 'apps/console', manifest: { name: 'inventory-console', private: true, version: '1.2.2' } },
-      { dir: 'tools/private', manifest: { name: '@stockroom/tool', private: true, version: '1.2.2' } },
-      { dir: 'tools/excluded', manifest: { name: 'excluded', version: '0.0.0' } },
+      { dir: '.', manifest: { name: 'workspace-root', private: true, version: '1.2.3' } },
+      { dir: 'packages/core/rules', manifest: { name: '@fixture/rules', version: '1.2.2' } },
+      { dir: 'apps/console', manifest: { name: 'console-app', private: true, version: '1.2.2' } },
+      { dir: 'apps/tooling', manifest: { name: 'private-tool', private: true, version: '1.2.2' } },
     ]
     for (const { dir, manifest } of members) {
       mkdirSync(join(root, dir), { recursive: true })
@@ -120,7 +150,7 @@ describe('package payload constraints', () => {
     { exports: { './locale/*.json': './locale/*.json', './search/locale/*.json': './locale/*.json' }, resources: ['locale/*.json'] },
     { exports: { './search/locale/*.json': './z/*.json', './locale/*.json': './a/*.json' }, resources: ['a/*.json', 'z/*.json'] },
   ])('includes declared locale resources in the canonical payload: $exports', ({ exports, resources }) => {
-    expect(expectedPackageFiles({ name: '@deepseek-ai/dsh-localized', exports })).toEqual([
+    expect(expectedPackageFiles({ name: '@fixture/localized', exports })).toEqual([
       ...resources, 'lib/index.js', 'lib/types/**/*.d.ts',
     ])
   })
@@ -140,9 +170,9 @@ describe('package payload constraints', () => {
 })
 
 it('checks isolated runtime metadata, exports and publication payload, including negative recovery', () => {
-  const dir = 'packages/stock/rules-engine'
+  const dir = 'packages/core/rules'
   const manifest: WorkspaceManifest['manifest'] = {
-    name: '@stockroom/stock-rules',
+    name: '@fixture/rules',
     version: '1.2.3',
     type: 'module',
     main: 'lib/index.js',
@@ -150,7 +180,7 @@ it('checks isolated runtime metadata, exports and publication payload, including
     exports: { '.': { types: './lib/types/index.d.ts', default: './lib/index.js' } },
     files: ['lib/index.js', 'lib/types/**/*.d.ts'],
     publishConfig: { access: 'public' },
-    repository: { type: 'git', url: 'https://example.com/stockroom.git', directory: dir },
+    repository: { type: 'git', url: 'https://example.com/project.git', directory: dir },
   }
   expect(checkWorkspaceManifest({ dir, manifest }, '1.2.3')).toEqual([])
   for (const changed of [
@@ -164,9 +194,9 @@ it('checks isolated runtime metadata, exports and publication payload, including
     { ...manifest, files: ['lib/index.js'] },
   ]) expect(checkWorkspaceManifest({ dir, manifest: changed }, '1.2.3')).not.toEqual([])
   expect(checkWorkspaceManifest({ dir, manifest }, '1.2.3')).toEqual([])
-  expect(checkWorkspaceManifest({ dir: 'apps/console', manifest: { name: 'inventory-console', version: '1.2.3' } }, '1.2.3'))
+  expect(checkWorkspaceManifest({ dir: 'apps/console', manifest: { name: 'console-app', version: '1.2.3' } }, '1.2.3'))
     .toEqual([expect.stringContaining('repository application/root must be private')])
-  expect(checkWorkspaceManifest({ dir: 'apps/console', manifest: { name: 'inventory-console', private: true, version: '1.2.3' } }, '1.2.3')).toEqual([])
+  expect(checkWorkspaceManifest({ dir: 'apps/console', manifest: { name: 'console-app', private: true, version: '1.2.3' } }, '1.2.3')).toEqual([])
 })
 
 it('keeps exact workspace dependency ranges for every dependency section', () => {

@@ -1,6 +1,6 @@
 {
   "name": "project-governance",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -65,15 +65,9 @@
     "templates/node-typescript/.oxlintrc.staged.json",
     "templates/node-typescript/.rgignore",
     "templates/node-typescript/.agents/",
-    "templates/node-typescript/.claude/skills",
     "templates/node-typescript/.github/**/{*.json,*.md,*.mjs,*.py,*.txt,*.yaml,*.yml,gitignore}",
-    "templates/node-typescript/apps/*/{*.json,*.md,*.ts,*.yaml,*.yml,LICENSE,gitignore}",
-    "templates/node-typescript/apps/*/{src,tests}/**",
     "templates/node-typescript/docs/",
     "templates/node-typescript/packages/*.{json,md,ts,yaml,yml}",
-    "templates/node-typescript/packages/*/*.{json,md,ts,yaml,yml}",
-    "templates/node-typescript/packages/*/*/{*.json,*.md,*.ts,*.yaml,*.yml,LICENSE,gitignore}",
-    "templates/node-typescript/packages/*/*/{src,tests}/**",
     "templates/node-typescript/scripts/"
   ],
   "devDependencies": {

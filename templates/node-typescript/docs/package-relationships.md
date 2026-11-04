@@ -9,9 +9,6 @@ This reference projects the current workspace manifests, not a second hand-maint
 <!-- BEGIN GENERATED package-relationships -->
 ```mermaid
 graph TD
-  n0["@deepseek-ai/dsh-plugin-market-generator"]
-  n1["@deepseek-ai/dsh-plugin-market-index"]
-  n0 --> n1
 ```
 <!-- END GENERATED package-relationships -->
 

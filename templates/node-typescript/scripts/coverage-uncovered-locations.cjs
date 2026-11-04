@@ -15,6 +15,7 @@
  */
 
 const path = require('node:path');
+const { globSync } = require('node:fs');
 const { ReportBase } = require('istanbul-lib-report');
 
 /**
@@ -63,16 +64,19 @@ class UncoveredLocationsReport extends ReportBase {
     super(opts);
     // Vitest passes the resolved config root alongside reporter options.
     this.projectRoot = opts.projectRoot || process.cwd();
+    this.coveredFiles = new Set();
     this.records = [];
   }
 
   onStart() {
     this.records = [];
+    this.coveredFiles.clear();
   }
 
   onDetail(node) {
     const fc = node.getFileCoverage();
     const rel = path.relative(this.projectRoot, fc.path).split(path.sep).join('/');
+    this.coveredFiles.add(rel);
     const items = [];
     const add = (loc, text) => items.push({ line: loc.start.line, column: loc.start.column, text });
 
@@ -111,6 +115,12 @@ class UncoveredLocationsReport extends ReportBase {
   }
 
   onEnd() {
+    const sources = globSync('packages/*/*/src/**/*.{ts,tsx}', { cwd: this.projectRoot })
+      .map(file => file.split(path.sep).join('/'))
+      .filter(file => !file.endsWith('.d.ts') && !/\/oxlint-contract-[^/]+\.ts$/u.test(file));
+    const missing = sources.filter(file => !this.coveredFiles.has(file));
+    if (missing.length > 0) throw new Error(`coverage: package source files missing from coverage report: ${missing.join(', ')}`);
+    if (sources.length === 0) console.log('coverage: no package runtime source files to measure.');
     if (this.records.length === 0) return;
     console.log(`\nUncovered locations (per-file 100% gate): ${this.records.length}`);
     for (const record of this.records) console.log(record);

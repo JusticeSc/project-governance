@@ -11,9 +11,9 @@ Find changes that remove maintained obligations: APIs, representations, lifecycl
 
 Read `AGENTS.md`, [architecture](../../../docs/architecture.md) before judging packages, [defensive patterns](../../../docs/defensive-patterns/README.md), and [testing policy](../../../docs/testing.md). Consult the relevant active Agent Notes for intentional decisions; use the [note rules](../../notes/README.md) for new records. Archived notes are historical examples, not current authority: never inspect, verify, or repair their outbound links.
 
-The format contract and its single type owner are intentional: `packages/util/plugin-market-index/src/types.ts` defines the records, `parseMarketIndex` is the executable rule set, and the generator validates every finished document through it. The package root-only export and the source/artifact split (`src` for development and tests, `lib` for `start:built` and packed consumers, no `./src/*` subpath) are equally deliberate. Do not propose deleting the validation call, the shared type owner, or the source-plane boundary unless the user explicitly overrides that constraint. Unused members within a protected design remain candidates when their removal preserves its purpose.
+Preserve current data contracts and their shared type and validation owners. Keep source and artifact planes distinct and evaluate proposed removals against actual consumers and the user's authority. Unused members remain candidates when removing them preserves the contract.
 
-For broad requests, divide independent domains among subagents: source-list parsing and fetch/trust boundaries; bundle discovery, metadata, and icons; version/tag selection, caching, and document assembly; output files, CLI options, and exit status; the validator package and its types; and scripts, tests, and documentation. Give each agent a bounded domain and require consumer evidence and rejected alternatives. Inspect substantial production machinery as well as obvious unused symbols; do not stop after the first promising deletion.
+For broad requests, divide independent domains along actual project boundaries, including relevant code, tests, configuration, and documentation. Give each agent a bounded domain and require consumer evidence and rejected alternatives. Inspect substantial production machinery as well as obvious unused symbols; do not stop after the first promising deletion.
 
 ## Search for removable obligations
 
@@ -30,7 +30,7 @@ Use these questions to guide discovery. Calibrate a candidate against the curren
 
 Start with `rg`, then read the matches. Search exact symbols, property reads and writes, config keys, package names, exported type names, and both `term(` and `.term(` call forms. Tests and declarations can show a contract without proving a shipped producer or consumer.
 
-Include `packages/*/*/src`, `apps/*/src`, `scripts/`, `tsconfig.*` and `pnpm-workspace.yaml` workspace discovery, package manifests with their `exports` and `files` fields, generated `lib/` output as consumed by `pnpm start:built` and packed consumers, `.github/` workflows, and the documentation and Agent Notes that describe them. Classify examples and fixtures by their actual entry point rather than directory name. Follow generated artifacts to their consumers: an index the app writes and the validator accepts is a product contract, while a documentation-only example is not a fixed caller. A manifest field read only by packed consumers still has a caller. A static unused-code checker must cover manifest-driven entry points and generated outputs without maintaining a parallel per-workspace exception inventory.
+Include actual `packages/*/*/src`, `apps/*/src`, `scripts/`, workspace discovery and configuration, package manifests and built artifacts, `.github/` workflows, and their owning documentation and Agent Notes. Classify examples and fixtures by their actual entry point rather than directory name. Follow generated artifacts to real consumers; documentation-only examples are not fixed callers, while manifest fields used by packed consumers are. Ensure unused-code analysis covers manifest-driven entries and generated outputs.
 
 For each candidate, record the current owner, effective producer/consumer path, what disappears, what remains, and the strongest reason to retain it. Distinguish:
 
@@ -44,7 +44,7 @@ Reject a candidate when it breaks a retained obligation, merely relocates the sa
 
 For copies, freezes, validators, and callback captures, name the value's origin, next owner, and trust boundary. Typed same-process calls ordinarily borrow readonly values; parsers, config loaders, durable files, workers, and subprocesses own or validate their inputs. Hostile-getter or callback-replacement tests do not establish a requirement by themselves. A frozen root does not prove its descendants immutable, and equal ids do not prove object identity.
 
-For asynchronous machinery, map each promise, flag, cancellation path, disposer, and reservation to its owner and transition. Collapse mechanisms only when they express the same fact. Preserve synchronous publication and rollback, callback containment, first-terminal-outcome arbitration, worker/process ownership, and dispose-to-quiescence where required. Durable markers can record real facts even when reporting ignores them; an unreadable source keeping its last successful entry, or an interrupted write leaving the previous index intact, is preserved capability, not redundant-state cleanup.
+For asynchronous machinery, map each promise, flag, cancellation path, disposer, and reservation to its owner and transition. Collapse mechanisms only when they express the same fact. Preserve synchronous publication and rollback, callback containment, first-terminal-outcome arbitration, worker/process ownership, and dispose-to-quiescence where required. Durable markers can record real facts even when reporting ignores them; preserve documented recovery and previous-data guarantees.
 
 ## Replace infrastructure only for a net reduction
 
@@ -56,7 +56,7 @@ Exercise the mismatches most likely to defeat the replacement: protocol truncati
 
 ## Record, consolidate, and validate
 
-Use [dsh-prose-standard](../dsh-prose-standard/SKILL.md) when prose is in scope. Remove code-restating or remotely owned explanations while preserving local behavior, timing, ownership, and failure obligations. Update affected READMEs, JSDoc, the generated index format, configuration, snapshots, and generated files with their owning change.
+Use [dsh-prose-standard](../dsh-prose-standard/SKILL.md) when prose is in scope. Remove code-restating or remotely owned explanations while preserving local behavior, timing, ownership, and failure obligations. Update affected READMEs, JSDoc, actual generated artifacts, configuration, and snapshots with their owning change.
 
 A substantial proposal uses the mandatory note skeleton: `Problem`, `Proposal`, `Alternatives considered`, `Acceptance criteria`, and `Risks`. Include concrete consumer evidence, the removed maintenance cost, the capability given up, and observable acceptance conditions. An implemented decision uses the [implemented format](../../notes/README.md#the-body-skeleton) instead. Update an existing owner when the decision is the same; do not create duplicate notes to preserve candidate counts.
 

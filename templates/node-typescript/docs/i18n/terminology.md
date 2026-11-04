@@ -6,12 +6,8 @@ After a Chinese first-mention annotation, use only the base term without repeati
 
 | English | 中文 | 首次出现 | 不要译作 |
 |---|---|---|---|
-| plugin market | 插件市场 | 插件市场（plugin market） | 插件商店 |
-| plugin market index | 插件市场索引 | 插件市场索引（plugin market index） | 市场列表 |
-| format 1 | 格式 1 | — | 版本 1 |
 | validator | 校验器 | 校验器（validator） | 验证器 |
 | generator | 生成器 | 生成器（generator） | 产生器 |
-| source list | 来源列表 | 来源列表（source list） | 源清单 |
 | source | 来源 | — | 源 |
 | registry | registry | — | 注册表 |
 | package manifest | 包清单 | 包清单（package manifest） | 包描述文件 |

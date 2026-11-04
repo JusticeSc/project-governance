@@ -1,6 +1,6 @@
 # Template: package-reference
 
-Use `kind: package-reference` when `scripts/package-readme-policy.manifest.json` assigns it through `defaultPackageKind` or a reasoned `packageKinds` entry. Describe the actual runtime contract identified from manifest and entry. This conditional template does not require the plain-library example to adopt a host. Read the real composition/loader contract before documenting installation; a plugin mount and bundle activation are different operations.
+Use `kind: package-reference` when `scripts/package-readme-policy.manifest.json` assigns it through `defaultPackageKind` or a reasoned `packageKinds` entry. Describe the actual runtime contract identified from manifest and entry. This conditional template does not require a plain library to adopt a host. Read the real composition/loader contract before documenting installation; a plugin mount and bundle activation are different operations.
 
 ## Frontmatter
 

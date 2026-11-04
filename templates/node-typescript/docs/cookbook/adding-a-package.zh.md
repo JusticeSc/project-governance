@@ -2,7 +2,7 @@
 
 [English](adding-a-package.md) | 中文
 
-在 `packages/` 下新增 workspace 库的文件级清单。按实际项目选择包名，不要求沿用示例 scope 或与目录同名。完整替换示例时，使用[从模板建立不同业务项目](starting-a-project.zh.md)。
+在 `packages/` 下新增 workspace 库的文件级清单。按实际项目选择包名与职责。项目初始准备见[开始项目](starting-a-project.zh.md)。
 
 ## 1. 创建包
 
@@ -22,7 +22,7 @@ packages/<group>/<pkg>/
 
 当现有分组符合包的职责时复用它。新分组是纯容器：没有 `package.json`、没有源文件，包仍恰好位于其下一层；新分组拥有自己的 `README.md`／`README.zh.md` 配对，并在 [packages/README.zh.md](../../packages/README.zh.md) 中增加一行。其 README 链接拥有的 `docs/subsystems/*.md` 页面，或者由 `scripts/project-policy.ts` 记录有理由的无页面分类。
 
-创建 `tests/tsconfig.json`，扩展 `../../../../tsconfig.base.json`，设置 `compilerOptions.noEmit: true`、`include: ["**/*.ts"]` 和 `references: [{ "path": ".." }]`。它拥有包测试的类型感知 lint；host 聚合继续检查这些测试，包源码项目仍只包含 `src`。见 [TypeScript 项目布局](../development.zh.md#typescript-project-layout)。
+创建 `tests/tsconfig.json`，扩展 `../../../../tsconfig.base.json`，设置 `compilerOptions.noEmit: true`、`include: ["**/*.ts", "**/*.tsx"]` 和 `references: [{ "path": ".." }]`。它拥有包测试的类型感知 lint；host 聚合继续检查这些测试，包源码项目仍只包含 `src`。见 [TypeScript 项目布局](../development.zh.md#typescript-project-layout)。
 
 `package.json` 不变量：
 

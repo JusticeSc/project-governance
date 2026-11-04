@@ -2,32 +2,22 @@
 
 English | [中文](SAFETY.zh.md)
 
-## Experimental status
+## Scope and guarantees
 
-This toolkit is developer-preview software. It has not undergone a security audit and must not be treated as secure or production-ready.
+This template installs engineering infrastructure, not a business application or a security boundary. It cannot establish that a project, dependency, CI workflow, or generated artifact is safe; each gate establishes only its stated predicate. Read the owning instructions and inspect command effects before using it in a project with sensitive data or release credentials.
 
-The generator reads remote package and repository data and writes files to paths you choose. It does not execute package code, install packages, or check out a working tree, but defects, malicious package metadata, an untrusted registry, or an untrusted Git server can still produce a misleading index or expose data.
+## Commands and external services
 
-## What the tools access
+Repository scripts run with the permissions of the invoking account. Review commands before running them in privileged, production, or credentialed environments. Use least privilege for local tools, CI tokens, Git credentials, package registries, and remote services. Never commit secrets or copy them into logs or fixtures.
 
-- **Network.** The generator requests npm registry documents and tarballs, and runs Git against each listed repository. It applies no registry tokens from `.npmrc`, and Git never prompts for credentials; a private repository must be readable through a credential helper or an SSH agent.
-- **Local files.** It reads the source list, writes the index, writes large icons under `icons/` beside it, and maintains a cache beside the input list. It removes only generated icon files it recognizes in that output directory.
-- **Package content.** Tarballs are read in memory under a size limit and an integrity check. Git objects are fetched into a private temporary bare repository and read as blobs; hooks, the file-system monitor, submodules, and all transports except HTTPS and SSH are disabled, and inherited `GIT_*` variables are dropped except `GIT_SSH` and `GIT_SSH_COMMAND`.
+## Files and persistent data
 
-## Trust boundaries
-
-An index is unauthenticated data. Titles, authors, labels, scores, package names, versions, and `engines` values are claims made by the package or the market; a listed repository can claim any package name. Review the source list and the rendered index before you publish it, and publish over HTTPS. Clients must show the index URL and each version's install source.
-
-The validator checks the document structure and rules; it cannot verify that a version's metadata matches the package it describes, or that the package is safe. It also does not bound document size; the caller must.
+Template installation does not reconcile conflicts or install dependencies and hooks. Protect existing content and merge conflicts deliberately. Before migrations or destructive operations, preserve affected data and verify a restore path. `verify-persistence` checks declared type-history consistency; it does not prove runtime compatibility, migration safety, or recoverability.
 
 ## Responsible use
 
-- Grant the process only the file-system, network, and Git access it needs.
-- Prefer a disposable environment when reading untrusted repositories.
-- Keep backups of output and cache directories that the tool can modify.
-- Do not publish credentials or private repository URLs in a source list or index.
-- Review generated icons and localized text before publishing them.
+Use systems, repositories, package registries, and credentials only with authorization. Test changes against isolated data before production. Publishing or changing remote and host configuration requires separate authorization.
 
 ## No warranty or liability
 
-Use this software at your own risk. It is provided without warranty under the [MIT License](LICENSE). To the maximum extent permitted by applicable law, the authors and copyright holders are not responsible for damage to computers, loss or disclosure of data, loss of files, or other harm arising from use of the project.
+Use the software with an understanding of its risks. It is provided under the [MIT License](LICENSE) without warranty. To the maximum extent permitted by law, the authors and copyright holders are not liable for computer damage, data loss or disclosure, lost files, or other harm arising from its use.

@@ -2,7 +2,7 @@
 
 English | [中文](adding-a-package.zh.md)
 
-The file-by-file checklist for a new workspace library under `packages/`. Choose a package name for the actual project; it need not share the example's scope or match the directory name. For replacing the whole example, use [Start a different project](starting-a-project.md).
+The file-by-file checklist for a new workspace library under `packages/`. Choose its name and role for the actual project. For initial project setup, use [Start a project](starting-a-project.md).
 
 ## 1. Create the package
 
@@ -22,7 +22,7 @@ packages/<group>/<pkg>/
 
 Choose an existing group when one matches the package's role. A new group is a pure container: no `package.json`, no source files, and packages still sit exactly one level below it; the group gets its own `README.md`/`README.zh.md` pair and a row in [packages/README.md](../../packages/README.md). Its README links the owning `docs/subsystems/*.md` page, or `scripts/project-policy.ts` records a justified no-page classification.
 
-Create `tests/tsconfig.json` extending `../../../../tsconfig.base.json`, with `compilerOptions.noEmit: true`, `include: ["**/*.ts"]`, and `references: [{ "path": ".." }]`. It owns type-aware lint for the package tests; the host aggregate continues checking them, while the package source project still includes only `src`. See the [TypeScript project layout](../development.md#typescript-project-layout).
+Create `tests/tsconfig.json` extending `../../../../tsconfig.base.json`, with `compilerOptions.noEmit: true`, `include: ["**/*.ts", "**/*.tsx"]`, and `references: [{ "path": ".." }]`. It owns type-aware lint for the package tests; the host aggregate continues checking them, while the package source project still includes only `src`. See the [TypeScript project layout](../development.md#typescript-project-layout).
 
 `package.json` invariants:
 

@@ -12,17 +12,17 @@ A citation to an internal rule id resolves nowhere at HEAD. Name the owner and r
 
 **Leaked:** "The cache was changed after review feedback."
 
-**Balanced:** "The npm plugin cache key includes the registry, icon threshold, package, listed versions, and retained channel mappings. If a source fetch fails, a valid last-success result is reused when available; otherwise that source contributes no plugins, and the run exits non-zero."
+**Balanced:** "A cache key includes every immutable input and output-affecting option. A failed refresh preserves only data permitted by the documented recovery contract and reports the failure."
 
 ## State the local contract, not the implementation tour
 
-**Over-detailed:** "`generate` awaits `npmPackument`, then `npmTarball`, assigns `entry.displayName`, calls `validateMarketIndex`, and writes the file through `writeIfChanged`."
+**Over-detailed:** "`generate` awaits `fetchData`, assigns `entry.title`, calls `validateDocument`, and writes the file through `writeIfChanged`."
 
 **Balanced:** "The generator reads every source, validates the assembled document with the shipped validator, and writes only when the bytes differ. A validation failure names the offending path and exits 1."
 
 Readers can open the function for the call order. They cannot recover the obligations the prose omitted.
 
-**Over-detailed:** "The index type lives in `types.ts`; `MarketIndex.entries` is `MarketIndexEntry[]`; `LocalizedText` is `{ en, zh }`."
+**Over-detailed:** "The document type lives in `types.ts`; `Document.entries` is `Entry[]`; each entry's metadata is a record."
 
 **Balanced:** "Each entry has one name, one version, and display metadata for English and Chinese. The validator owns the record types; consumers import them from the package root."
 

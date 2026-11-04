@@ -5,11 +5,13 @@ description: Install the bundled fixed Node.js/TypeScript project-governance tem
 
 # Install the project-governance template
 
-This Skill installs its bundled fixed template. The template includes an example application and project governance files. Once installed, hand ordinary development to the target project's own AGENTS.md, documentation and Skills.
+This Skill installs its bundled Node.js/TypeScript governance template, not a business application. Development then follows the target's `AGENTS.md`, documentation and Skills.
 
-## Prepare and install
+## Prepare
 
-Confirm the target path, its technology stack and existing content to protect. The installer requires Node.js >=22.19.0; the template itself requires Node.js `>=24 <25` and pnpm 11.28.5. The destination filesystem and account must permit directory symbolic links; on Windows this may require Developer Mode or symbolic-link privilege. The copied Skill includes the template as an offline asset and needs no npm workspace or node_modules.
+Confirm the target path, stack and business, data and configuration to preserve. The installer requires Node.js >=22.19.0; the template requires Node.js `>=24 <25` and pnpm 11.28.5. The copied Skill includes an offline asset and needs no npm workspace, `node_modules` or Claude-specific link.
+
+## Install
 
 Run:
 
@@ -17,12 +19,17 @@ Run:
 node <skill-dir>/scripts/install-template.mjs <project-directory>
 ```
 
-`<skill-dir>` is this Skill's directory; the target may be new or existing. The installer checks all conflicts before writing to the target. Existing directories may be shared, but a conflicting file, link or non-directory stops installation. Existing files are not overwritten. If installation fails during writing, inspect the reported paths; rollback removes only this run's unchanged creations, not uncertain user content. Installation does not install dependencies or hooks, initialize Git, change remote settings or replace the example business.
+`<skill-dir>` is this Skill's directory. New targets are created; existing directories may be shared. Default mode refuses collisions before writing. Existing files and links are never overwritten. Inner directory symlinks and junctions are refused; target-root aliases are allowed.
 
-## Reconcile conflicts
+### Existing-project conflicts
 
-Read the conflicting project and template files and identify what to preserve, merge or add. For a complete reference, run the same installer into a new temporary directory. Obtain the user's approval for changes to existing business, data or important configuration, then apply the approved merges and install the remaining template files, directories and links into the actual project. Preserve existing content outside the approved changes and account for every conflict. A reference copy or partial copy alone is not a completed installation. Remove a temporary reference only after confirming this run created it.
+1. Install to a temporary directory for a complete reference. Compare every conflict, including non-directory blockers, with the target; identify template obligations and behavior to preserve.
+2. Get the user's approval before materially changing business, data or important configuration; agree on merges. Never replace owner content just to complete installation.
+3. Run `node <skill-dir>/scripts/install-template.mjs --add-missing <project-directory>` on the target. It copies only absent paths and lists all collisions. Exit 3 means conflicts remain, even if files were added: this is a **partial installation**. Exit 0 means no collisions; exit 1 means installation failure. Redirected inner directories are refused before writes. On write failure, inspect reported paths: rollback removes only unchanged creations from this run; uncertain content remains for review.
+4. Reconcile every conflict and blocker against the reference, apply approved merges and preserve unrelated content. Remove the reference only after confirming this run created it.
 
-## Handoff
+## Verify and hand off
 
-Confirm the actual target contains the template's entry points, configuration, scripts and project Skills, that protected content remains intact, and that approved merges are complete. Report unresolved conflicts and any checks or setup not performed. Installing dependencies, initializing the project's Git repository, replacing example business and subsequent development follow the target project's own AGENTS.md and documentation; they are not completed by template installation.
+Inspect target entry points, configuration, scripts and project Skills. Confirm all conflicts and blockers are reconciled, approved merges are applied and protected content intact. Exit 0 alone does not prove an existing project's merged setup or behavior; a reference or partial installation is not completion. Report unresolved conflicts and unperformed checks or setup.
+
+Installation does not install dependencies or hooks, initialize Git or change remotes. For new projects, follow the installed instructions to configure dependencies and start requested work; for existing projects, validate the merged setup and preserve existing behavior. Ongoing development belongs to the target project.

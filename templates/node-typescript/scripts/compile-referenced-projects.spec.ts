@@ -258,11 +258,10 @@ describe('package project compilation', () => {
     expect(() => { compileReferencedProjects(root, 'host') }).toThrow('host compiler exited with')
   })
 
-  it.each([undefined, []])('rejects an aggregate with missing or empty references: %j', (references) => {
+  it.each([undefined, []])('accepts a genuinely empty aggregate: %j', (references) => {
     const { root } = fixture()
-    writeFileSync(join(root, 'tsconfig.host.json'), JSON.stringify({ files: [], references }))
-
-    expect(() => { compileReferencedProjects(root, 'host') }).toThrow('requires non-empty project references')
+    writeFileSync(join(root, 'tsconfig.host.json'), JSON.stringify({ compilerOptions: { noEmit: true }, include: ['aggregate.ts'], references }))
+    expect(() => { compileReferencedProjects(root, 'host') }).not.toThrow()
   })
 
   it('rejects a missing referenced project', () => {

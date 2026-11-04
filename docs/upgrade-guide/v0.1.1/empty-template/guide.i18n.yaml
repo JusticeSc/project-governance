@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for guide.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/upgrade-guide/v0.1.1/empty-template/guide.md
+/:
+  en: cc128e16ea38b353
+  zh: d38f7091aebdaf0e
+/move-from-the-plugin-market-sample:
+  en: 5e2b2eef09a7bcf6
+  zh: 4aef376bc9a3f3e1
+/move-from-the-plugin-market-sample/change:
+  en: 2cd3438f77dd647b
+  zh: f98053c5591edbbc
+/move-from-the-plugin-market-sample/migration:
+  en: 413b324939d5e51c
+  zh: 79b48c462a9d64b2

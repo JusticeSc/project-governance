@@ -1,11 +1,14 @@
 /** Compile and bundle the Node package projects before checking aggregate programs. */
 
 import { spawn, spawnSync } from 'node:child_process'
+import { existsSync, globSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import ts from 'typescript'
+import { readWorkspaceManifests } from './check-workspace-constraints.ts'
 import { pnpmInvocation } from './pnpm-invocation.ts'
+import { faceConfigs } from './ts-project.ts'
 
 type CompilationMode = 'checked' | 'benchmark-emit'
 
@@ -46,7 +49,7 @@ export function runPnpmCommand(root: string, args: readonly string[]): void {
  * @param face - Independent compiler face whose package projects are emitted.
  * @param mode - Check package types by default; benchmark emission defers diagnostics to required full builds.
  * @returns Arguments for `process.execPath`, including the heap limit the Host face needs.
- * @throws If the aggregate configuration is invalid, has no references, or can emit files.
+ * @throws If the aggregate configuration is invalid, omits a workspace member, or can emit files.
  */
 export function referencedProjectsCompilerArgs(
   root: string,
@@ -61,9 +64,26 @@ export function referencedProjectsCompilerArgs(
     },
   })
   if (config === undefined) throw new Error(`compile-referenced-projects: cannot read ${configPath}`)
-  const references = config.projectReferences
-  if (references === undefined || references.length === 0) {
-    throw new Error(`compile-referenced-projects: ${configPath} requires non-empty project references`)
+  const references = config.projectReferences ?? []
+  if (existsSync(resolve(root, 'pnpm-workspace.yaml'))) {
+    const referenced = new Set(references.map(reference => resolve(ts.resolveProjectReferencePath(reference))))
+    const members = readWorkspaceManifests(root).filter(({ dir }) => dir !== '.')
+    for (const { dir } of members) {
+      if (!referenced.has(resolve(root, dir, 'tsconfig.json'))) {
+        throw new Error(`compile-referenced-projects: ${dir} is a workspace member missing from ${configPath} references`)
+      }
+    }
+    const graph = faceConfigs(root, face)
+    const included = new Set([...graph.byPath.values()].flatMap(project => project.fileNames.map(file => resolve(file))))
+    for (const { dir } of members) {
+      for (const file of globSync(['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}', 'tests/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'], {
+        cwd: resolve(root, dir), exclude: ['**/node_modules/**'],
+      })) {
+        if (!included.has(resolve(root, dir, file))) {
+          throw new Error(`compile-referenced-projects: ${dir}/${file} is omitted by the compiler project graph`)
+        }
+      }
+    }
   }
   if (config.errors.length > 0) {
     throw new Error(config.errors
@@ -73,6 +93,7 @@ export function referencedProjectsCompilerArgs(
   if (config.options.noEmit !== true) {
     throw new Error(`compile-referenced-projects: ${configPath} requires noEmit: true to exclude its aggregate program`)
   }
+  if (references.length === 0) return []
   return [
     ...hostHeapArgs(face),
     fileURLToPath(import.meta.resolve('typescript/bin/tsc')),
@@ -121,7 +142,7 @@ export function compileReferencedProjects(
   face: 'host',
   mode: CompilationMode = 'checked',
 ): void {
-  runStep(root, compilerStep(root, face, mode, []))
+  if (referencedProjectsCompilerArgs(root, face, mode).length > 0) runStep(root, compilerStep(root, face, mode, []))
 }
 
 function compilerStep(
@@ -154,15 +175,19 @@ function pnpmStep(id: LibraryStepId, label: string, args: readonly string[], nee
 
 /** List Node compilation and bundling in artifact dependency order. */
 export function libraryBuildSteps(root: string, mode: CompilationMode = 'checked'): LibraryStep[] {
+  const args = referencedProjectsCompilerArgs(root, 'host', mode)
+  if (args.length === 0) return []
+  const bundle = !existsSync(resolve(root, 'pnpm-workspace.yaml'))
+    || readWorkspaceManifests(root).some(({ dir }) => /^packages\/[^/]+\/[^/]+$/u.test(dir))
   return [
     compilerStep(root, 'host', mode, []),
-    pnpmStep('host-bundle', 'Node bundle', ['exec', 'tsdown', '--config-loader', 'native'], ['host-src']),
+    ...bundle ? [pnpmStep('host-bundle', 'Node bundle', ['exec', 'tsdown', '--config-loader', 'native'], ['host-src'])] : [],
   ]
 }
 
 /** Produce package declarations without bundling runnable artifacts. */
 export function contractSteps(root: string): LibraryStep[] {
-  return [compilerStep(root, 'host', 'checked', [])]
+  return referencedProjectsCompilerArgs(root, 'host').length === 0 ? [] : [compilerStep(root, 'host', 'checked', [])]
 }
 
 function runStep(root: string, step: LibraryStep): void {
@@ -198,7 +223,7 @@ export function buildLibraryArtifacts(root: string, mode: CompilationMode = 'che
 
 /** Compile the Node package contracts without bundling. */
 export async function buildHostContracts(root: string): Promise<void> {
-  await runStepConcurrently(root, compilerStep(root, 'host', 'checked', []))
+  for (const step of contractSteps(root)) await runStepConcurrently(root, step)
 }
 
 if (import.meta.main) {

@@ -9,8 +9,8 @@ import { type ApplicationEntrypointPolicy } from './project-policy.ts'
 
 const fixturePolicy: ApplicationEntrypointPolicy = {
   rootLaunchers: {
-    start: { path: 'apps/orders/src/bin.ts', source: 'apps/orders/src/bin.ts', kind: 'source' },
-    'start:built': { path: 'apps/orders/lib/types/bin.js', source: 'apps/orders/src/bin.ts', kind: 'artifact' },
+    start: { path: 'apps/console/src/bin.ts', source: 'apps/console/src/bin.ts', kind: 'source' },
+    'start:built': { path: 'apps/console/lib/types/bin.js', source: 'apps/console/src/bin.ts', kind: 'artifact' },
   },
   manifestBins: {},
   executableSources: {},
@@ -87,7 +87,7 @@ describe('application entrypoints', () => {
 
   it('rejects a new root demo until its launch role is classified', () => {
     const root = fixture()
-    write(root, 'package.json', JSON.stringify({ scripts: { 'demo:new-app': 'dsh --profile new-app' } }))
+    write(root, 'package.json', JSON.stringify({ scripts: { 'demo:new-app': 'tsx apps/new-app/src/main.ts' } }))
 
     expect(applicationEntrypointViolations(root, fixturePolicy)).toEqual([
       'package.json scripts.demo:new-app: launcher has no explicit application classification',
@@ -96,8 +96,8 @@ describe('application entrypoints', () => {
 
   it('requires source ownership for source and built launcher commands and rejects bypasses', () => {
     const root = fixture()
-    const source = 'apps/orders/src/bin.ts'
-    write(root, 'package.json', JSON.stringify({ scripts: { start: 'tsx ' + source, 'start:built': 'node apps/orders/lib/types/bin.js' } }))
+    const source = 'apps/console/src/bin.ts'
+    write(root, 'package.json', JSON.stringify({ scripts: { start: 'tsx ' + source, 'start:built': 'node apps/console/lib/types/bin.js' } }))
     expect(applicationEntrypointViolations(root, fixturePolicy)).toEqual([source + ': classified launcher source is missing', source + ': classified launcher source is missing'])
     write(root, source, 'export {}\n')
     expect(applicationEntrypointViolations(root, fixturePolicy)).toEqual([])
@@ -106,13 +106,13 @@ describe('application entrypoints', () => {
   })
 
   it.each([
-    { kind: 'source', entry: 'apps/orders/lib/types/bin.js' },
-    { kind: 'artifact', entry: 'apps/orders/src/bin.ts' },
+    { kind: 'source', entry: 'apps/console/lib/types/bin.js' },
+    { kind: 'artifact', entry: 'apps/console/src/bin.ts' },
     { kind: 'artifact', entry: 'apps/other/lib/types/bin.js' },
-    { kind: 'artifact', entry: 'apps/orders/lib/../src/bin.ts' },
+    { kind: 'artifact', entry: 'apps/console/lib/../src/bin.ts' },
   ] as const)('rejects a $kind launcher selecting $entry', ({ kind, entry }) => {
     const root = fixture()
-    const source = 'apps/orders/src/bin.ts'
+    const source = 'apps/console/src/bin.ts'
     const policy: ApplicationEntrypointPolicy = {
       ...fixturePolicy,
       rootLaunchers: { start: { path: entry, source, kind } },
@@ -127,17 +127,17 @@ describe('application entrypoints', () => {
 
   it('accepts explicit executable and bin classifications and rejects a changed bin', () => {
     const root = fixture()
-    const manifest = 'apps/orders/package.json'
-    const source = 'apps/orders/src/bin.ts'
+    const manifest = 'apps/console/package.json'
+    const source = 'apps/console/src/bin.ts'
     const policy: ApplicationEntrypointPolicy = {
       rootLaunchers: {},
-      manifestBins: { [manifest]: { orders: 'lib/bin.js' } },
-      executableSources: { [source]: 'Order-processing application executable.' },
+      manifestBins: { [manifest]: { console: 'lib/bin.js' } },
+      executableSources: { [source]: 'Console application executable.' },
     }
     write(root, source, '#!/usr/bin/env node\n')
-    write(root, manifest, JSON.stringify({ bin: { orders: 'lib/bin.js' } }))
+    write(root, manifest, JSON.stringify({ bin: { console: 'lib/bin.js' } }))
     expect(applicationEntrypointViolations(root, policy)).toEqual([])
-    write(root, manifest, JSON.stringify({ bin: { orders: 'lib/other.js' } }))
+    write(root, manifest, JSON.stringify({ bin: { console: 'lib/other.js' } }))
     expect(applicationEntrypointViolations(root, policy)[0]).toContain('classified bin must remain')
   })
 })

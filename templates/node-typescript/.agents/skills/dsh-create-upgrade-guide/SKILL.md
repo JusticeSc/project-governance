@@ -1,6 +1,6 @@
 ---
 name: dsh-create-upgrade-guide
-description: Use when a change breaks an externally perceptible CLI, index format, configuration or stored data, or published package entry point, or changes a surface already covered by an unreleased upgrade guide.
+description: Use when a change breaks an externally perceptible CLI, data format, configuration or stored data, or published package entry point, or changes a surface already covered by an unreleased upgrade guide.
 ---
 
 # Create an upgrade guide
@@ -11,11 +11,11 @@ An upgrade guide tells a reader who runs release vT what to change to run the ne
 
 Write a guide only for breaks that someone outside the repository can observe after upgrading:
 
-- generator commands, flags, accepted values, or output paths;
-- configuration or stored index data that requires reader action to remain usable;
-- published package names, entry points, exported functions, types, or accepted index fields.
+- application commands, flags, accepted values, or output paths;
+- configuration or stored data that requires reader action to remain usable;
+- published package names, entry points, exported functions, types, or accepted data fields.
 
-Pre-stable internal APIs whose consumers are all updated in the same change need no guide. Keep the owning format Agent Note and package contract current; a guide states the reader's migration actions and links those owners rather than replacing them. Do not create a guide merely to populate this directory or describe the initial template import.
+Pre-stable internal APIs whose consumers are all updated in the same change need no guide. Keep the owning contract and any active decision record current; a guide states the reader's migration actions and links those owners rather than replacing them. Do not create a guide merely to populate this directory or describe the initial template import.
 
 ## Location
 

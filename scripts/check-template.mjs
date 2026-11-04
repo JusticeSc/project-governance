@@ -1,11 +1,5 @@
-// End-to-end check of the exported template: export the author payload into a fresh temporary
-// directory, install with the committed lock, build the artifact plane from source, then drive the
-// built CLI on a real empty source list and on a refused argument that must preserve the index.
-// The template's own gate graph is its own contract and runs from its CI workflow; this entry proves
-// acquisition and the built artifact, not the template's complete check. The export and every file
-// this check writes stay in the temporary directory (the package manager and Corepack may use their
-// own caches), and no ambient Git repository or Node loader option is allowed to leak into the
-// exported project.
+// Exercise the delivered empty template, then add an isolated workspace consumer.
+// No business fixture is copied back into the authored template.
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import {
@@ -15,15 +9,25 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
-  readlinkSync,
   rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { availableParallelism, tmpdir } from 'node:os'
 import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { exportTemplate } from './export-template.mjs'
+
+const templateNode = process.env.PROJECT_GOVERNANCE_TEMPLATE_NODE ?? process.execPath
+if (!isAbsolute(templateNode)) throw new Error('check-template: template Node executable must be an absolute path')
+const probeEnv = { ...process.env }
+delete probeEnv.NODE_OPTIONS
+delete probeEnv.NODE_PATH
+const nodeVersion = spawnSync(templateNode, ['-p', 'process.versions.node'], { env: probeEnv, encoding: 'utf8', timeout: 10_000 })
+if (nodeVersion.error) throw new Error('check-template: template Node executable is unavailable', { cause: nodeVersion.error })
+if (nodeVersion.status !== 0 || !/^24\.\d+\.\d+$/u.test(nodeVersion.stdout.trim())) {
+  throw new Error('check-template: template requires Node >=24 <25; set PROJECT_GOVERNANCE_TEMPLATE_NODE to a Node 24 executable')
+}
 
 const source = fileURLToPath(new URL('../', import.meta.url))
 const templateSource = join(source, 'templates', 'node-typescript')
@@ -34,6 +38,8 @@ const TIMEOUT = 1_800_000
 // A smoke run must not inherit loader hooks, an ambient archive baseline or an enclosing Git
 // repository: the exported project is judged on its own content only.
 const env = { ...process.env }
+const pathKey = Object.keys(env).find(key => key.toUpperCase() === 'PATH') ?? 'PATH'
+env[pathKey] = [dirname(templateNode), env[pathKey] ?? ''].join(delimiter)
 for (const name of [
   'NODE_PATH',
   'NODE_OPTIONS',
@@ -50,28 +56,29 @@ for (const name of [
 }
 env.GIT_CEILING_DIRECTORIES = temporary
 env.COREPACK_ENABLE_DOWNLOAD_PROMPT = '0'
+env.COREPACK_ENABLE_NETWORK = '0'
 
 // Node ships Corepack as a sibling module of the Node executable; other installations expose a
 // `corepack` program on PATH. A JavaScript entry point is preferred because it is handed to Node
 // unchanged, while a .cmd/.bat shim would need a shell that reinterprets the fixed arguments.
 function resolveCorepack() {
-  const local = dirname(process.execPath)
+  const local = dirname(templateNode)
   for (const candidate of [
     join(local, 'node_modules', 'corepack', 'dist', 'corepack.js'),
     join(local, '..', 'lib', 'node_modules', 'corepack', 'dist', 'corepack.js'),
   ]) {
-    if (existsSync(candidate) && statSync(candidate).isFile()) return { command: process.execPath, prefix: [candidate] }
+    if (existsSync(candidate) && statSync(candidate).isFile()) return { command: templateNode, prefix: [candidate] }
   }
   const names = process.platform === 'win32'
     ? (process.env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean).map(extension => `corepack${extension.toLowerCase()}`)
     : ['corepack']
-  for (const directory of (process.env.PATH ?? '').split(delimiter)) {
+  for (const directory of (env[pathKey] ?? '').split(delimiter)) {
     if (directory === '') continue
     for (const candidate of [join(directory, 'node_modules', 'corepack', 'dist', 'corepack.js'), ...names.map(name => join(directory, name))]) {
       if (!existsSync(candidate) || !statSync(candidate).isFile()) continue
       // A Windows command shim is never handed to a shell; its JavaScript module is used instead.
       if (/\.(?:cmd|bat)$/iu.test(candidate)) continue
-      if (/\.js$/iu.test(candidate)) return { command: process.execPath, prefix: [candidate] }
+      if (/\.js$/iu.test(candidate)) return { command: templateNode, prefix: [candidate] }
       return { command: candidate, prefix: [] }
     }
   }
@@ -136,16 +143,6 @@ try {
     assert(!segments.includes('..'), `path traversal in the payload: ${path}`)
     const target = join(exported, ...segments)
     const stats = lstatSync(target)
-    if (path === '.claude/skills') {
-      assert(stats.isSymbolicLink(), 'Claude skills entry must be a directory symlink')
-      assert.equal(resolve(dirname(target), readlinkSync(target)), resolve(exported, '.agents/skills'))
-      assert(statSync(target).isDirectory(), 'Claude skills entry must resolve to the canonical skill directory')
-      assert.deepEqual(
-        readFileSync(join(target, 'dsh-code-review', 'SKILL.md')),
-        readFileSync(join(exported, '.agents', 'skills', 'dsh-code-review', 'SKILL.md')),
-      )
-      continue
-    }
     assert(!stats.isSymbolicLink(), `payload entry is a symbolic link: ${path}`)
     assert(stats.isFile(), `payload entry is not a regular file: ${path}`)
     assert.equal(stats.nlink, 1, `payload entry is hard-linked: ${path}`)
@@ -160,7 +157,6 @@ try {
     'CLAUDE.md',
     'packages/CLAUDE.md',
     '.agents/notes/implemented/CLAUDE.md',
-    '.claude/skills',
     'README.md',
     'README.zh.md',
     'package.json',
@@ -172,12 +168,7 @@ try {
     'vitest.config.ts',
     '.github/workflows/ci.yml',
     '.agents/skills/dsh-code-review/SKILL.md',
-    'apps/plugin-market-generator/package.json',
-    'apps/plugin-market-generator/src/cli.ts',
-    'packages/util/plugin-market-index/package.json',
-    'packages/util/plugin-market-index/src/index.ts',
     'scripts/run-gates.ts',
-    'scripts/built-runtime.spec.ts',
   ]) {
     assert(payload.includes(required), `the payload is missing an expected file: ${required}`)
   }
@@ -191,55 +182,80 @@ try {
   assert.equal(readFileSync(sentinel, 'utf8'), 'pre-existing owner content\n')
   assert.deepEqual(walk(occupied), [sentinel], 'a refused export must not add or remove files')
 
-  // 3. Install with the committed lock, then build the artifact plane in the exported copy.
-  assert(!existsSync(join(exported, 'apps', 'plugin-market-generator', 'lib')), 'a fresh export must not carry build output')
+  // A fresh empty project builds the governance tooling without domain artifacts.
   const corepack = resolveCorepack()
-  const pnpm = (...args) => run(`pnpm ${args.join(' ')}`, corepack.command, [...corepack.prefix, 'pnpm', ...args], exported)
-  pnpm('install', '--frozen-lockfile', '--ignore-scripts')
-  pnpm('run', 'build')
+  const pnpm = (args, expected = 0, capture = false, cwd = exported) =>
+    run(`pnpm ${args.join(' ')}`, corepack.command, [...corepack.prefix, 'pnpm', ...args], cwd, expected, capture)
+  pnpm(['install', '--offline', '--frozen-lockfile', '--ignore-scripts'])
+  pnpm(['run', 'build'])
+  pnpm(['run', 'constraints'])
+  // Keep the acquisition check's real Git and process fixtures within a bounded worker budget.
+  pnpm(['run', 'test', `--maxWorkers=${String(Math.min(4, availableParallelism()))}`])
+  assert(!payload.some(path => path.startsWith('apps/') || /^packages\/[^/]+\/[^/]+\//u.test(path)), 'the template must not ship business members')
 
-  const cli = join(exported, 'apps', 'plugin-market-generator', 'lib', 'types', 'bin.js')
-  assert(existsSync(cli), 'the exported project must build the CLI entry it ships')
+  // Only this temporary export gains a real library and application; omitted references must fail.
+  const member = 'packages/math/statistics'
+  const memberRoot = join(exported, member)
+  const application = 'apps/console'
+  const applicationRoot = join(exported, application)
+  mkdirSync(join(memberRoot, 'src'), { recursive: true })
+  mkdirSync(join(applicationRoot, 'src'), { recursive: true })
+  const manifest = JSON.parse(readFileSync(join(exported, 'package.json'), 'utf8'))
+  writeFileSync(join(memberRoot, 'package.json'), JSON.stringify({
+    name: '@template-smoke/statistics', version: manifest.version, license: manifest.license,
+    type: 'module', main: 'lib/index.js', types: 'lib/types/index.d.ts',
+    exports: { '.': { types: './lib/types/index.d.ts', default: './lib/index.js' } },
+    files: ['lib/index.js', 'lib/types/**/*.d.ts'], publishConfig: { access: 'public' },
+    repository: { type: 'git', url: 'https://github.com/example/statistics.git', directory: member },
+  }, null, 2) + '\n')
+  writeFileSync(join(memberRoot, 'tsconfig.json'), JSON.stringify({
+    extends: '../../../tsconfig.node.base.json',
+    compilerOptions: { rootDir: 'src', outDir: 'lib/types' }, include: ['src/**/*.ts'],
+  }, null, 2) + '\n')
+  const entry = join(memberRoot, 'src/index.ts')
+  const sourceBytes = Buffer.from('export function mean(values: readonly number[]): number {\n  if (values.length === 0) throw new RangeError("mean requires values")\n  return values.reduce((sum, value) => sum + value, 0) / values.length\n}\n')
+  writeFileSync(entry, sourceBytes)
+  writeFileSync(join(applicationRoot, 'package.json'), JSON.stringify({
+    name: '@template-smoke/console', version: manifest.version, license: manifest.license,
+    private: true, type: 'module', dependencies: { '@template-smoke/statistics': 'workspace:*' },
+  }, null, 2) + '\n')
+  writeFileSync(join(applicationRoot, 'tsconfig.json'), JSON.stringify({
+    extends: '../../tsconfig.node.base.json',
+    compilerOptions: { rootDir: 'src', outDir: 'lib/types' }, include: ['src/**/*.ts'],
+    references: [{ path: `../../${member}` }],
+  }, null, 2) + '\n')
+  const applicationEntry = join(applicationRoot, 'src/index.ts')
+  const applicationSource = Buffer.from('import { mean } from "@template-smoke/statistics"\nif (mean([3, 9, 12]) !== 8) throw new Error("workspace library result changed")\nconsole.log("application consumed library artifact")\n')
+  writeFileSync(applicationEntry, applicationSource)
+  // Updating the temporary workspace lock may require registry metadata not present in a fresh store.
+  pnpm(['install', '--no-frozen-lockfile', '--ignore-scripts'])
+  const omitted = pnpm(['run', 'build'], 1, true)
+  assert.match(omitted.stderr + omitted.stdout, /workspace member missing.*references/u)
+  const hostPath = join(exported, 'tsconfig.host.json')
+  const host = JSON.parse(readFileSync(hostPath, 'utf8'))
+  host.references = [{ path: `./${member}` }, { path: `./${application}` }]
+  writeFileSync(hostPath, JSON.stringify(host, null, 2) + '\n')
+  pnpm(['run', 'build'])
+  pnpm(['run', 'constraints'])
 
-  // 4. Drive the built CLI from the exported copy: a real index, then a refused argument that preserves it.
-  const consumer = join(temporary, 'built consumer')
+  // Consume the actual public artifact, including its error behavior.
+  const consumer = join(temporary, 'artifact consumer')
   mkdirSync(consumer)
-  const sources = join(consumer, 'sources.txt')
-  writeFileSync(sources, '# an intentionally empty source list\n')
-  const output = join(consumer, 'index.json')
-  const args = [cli, '--input', sources, '--output', output, '--title', 'Exported template']
-  run('built CLI writes a format-1 index', process.execPath, args, consumer, 0, true)
-  assert.deepEqual(JSON.parse(readFileSync(output, 'utf8')), { format: 1, title: 'Exported template', plugins: [] })
+  const probe = join(consumer, 'probe.mjs')
+  writeFileSync(probe, `import assert from 'node:assert/strict'\nimport { mean } from ${JSON.stringify(pathToFileURL(join(memberRoot, 'lib/index.js')).href)}\nassert.equal(mean([3, 9, 12]), 8)\nassert.throws(() => mean([]), RangeError)\nconsole.log('public artifact mean=8; empty input rejected')\n`)
+  run('actual artifact consumer', templateNode, [probe], consumer)
+  run('actual application artifact consumer', templateNode, [join(applicationRoot, 'lib/types/index.js')], applicationRoot)
 
-  const written = readFileSync(output)
-  const refused = run('built CLI refuses an invalid concurrency', process.execPath, [...args, '--concurrency', '0'], consumer, 2, true)
-  assert.match(refused.stderr, /must be a positive integer/u)
-  assert(written.equals(readFileSync(output)), 'a refused argument must leave the previous index in place')
-
-  // 5. Clean the actual emitted workspaces, including stale type-check probes, without
-  // changing source; the source launcher must still work before artifacts are rebuilt.
-  const workspaceRoots = ['apps/plugin-market-generator', 'packages/util/plugin-market-index']
-  const sourceBytes = workspaceRoots.map(path => readFileSync(join(exported, path, 'src', path.startsWith('apps/') ? 'bin.ts' : 'index.ts')))
-  for (const path of workspaceRoots) writeFileSync(join(exported, path, 'lib', 'types', 'oxlint-contract-sentinel.d.ts'), 'export declare const stale: unique symbol\n')
-  pnpm('run', 'clean')
-  for (const [index, path] of workspaceRoots.entries()) {
-    assert(!existsSync(join(exported, path, 'lib')), `clean must remove the actual emitted workspace: ${path}`)
-    assert.deepEqual(readFileSync(join(exported, path, 'src', path.startsWith('apps/') ? 'bin.ts' : 'index.ts')), sourceBytes[index], `clean must preserve authored source: ${path}`)
-  }
-  const sourceOutput = join(consumer, 'source-after-clean.json')
-  assert(!existsSync(sourceOutput), 'source probe must begin without an output')
-  pnpm('run', 'start', '--input', sources, '--output', sourceOutput, '--title', 'Exported template')
-  assert(existsSync(sourceOutput), 'source launcher must create a fresh report')
-  assert(written.equals(readFileSync(sourceOutput)), 'source execution after clean must produce the expected report')
-  for (const path of workspaceRoots) assert(!existsSync(join(exported, path, 'lib')), 'source execution must not regenerate build artifacts')
-  pnpm('run', 'build')
-  const rebuiltOutput = join(consumer, 'rebuilt.json')
-  assert(!existsSync(rebuiltOutput), 'rebuilt probe must begin without an output')
-  run('rebuilt CLI creates the same output contract', process.execPath, [cli, '--input', sources, '--output', rebuiltOutput, '--title', 'Exported template'], consumer, 0, true)
-  assert(existsSync(rebuiltOutput), 'rebuilt launcher must create a fresh report')
-  assert(written.equals(readFileSync(rebuiltOutput)), 'rebuilding after clean must produce deterministic output')
-
-  console.log('\nTEMPLATE CHECK PASSED: clean export payload, refusal preserves existing state, frozen-lock install, source build, built CLI refusal safety, workspace artifact cleanup, source execution without lib, and deterministic rebuild')
+  writeFileSync(join(memberRoot, 'lib/types/stale-probe.d.ts'), 'export declare const stale: unique symbol\n')
+  pnpm(['run', 'clean'])
+  assert(!existsSync(join(memberRoot, 'lib')), 'clean must remove the whole library artifact tree')
+  assert(!existsSync(join(applicationRoot, 'lib')), 'clean must remove the whole application artifact tree')
+  assert.deepEqual(readFileSync(entry), sourceBytes, 'clean must preserve library source')
+  assert.deepEqual(readFileSync(applicationEntry), applicationSource, 'clean must preserve application source')
+  pnpm(['run', 'build'])
+  run('artifact consumer after rebuild', templateNode, [probe], consumer)
+  run('application artifact consumer after rebuild', templateNode, [join(applicationRoot, 'lib/types/index.js')], applicationRoot)
+  console.log('\nTEMPLATE CHECK PASSED: regular-file payload, preserved existing destination, empty project build, discovered app/library rejection and recovery, library artifact behavior, app-to-library consumption, and clean rebuild')
 } finally {
   rmSync(temporary, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
 }

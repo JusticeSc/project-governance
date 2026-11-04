@@ -26,7 +26,9 @@
 
 `templates/node-typescript/`是独立的pnpm工程，不是根npm workspace成员。它拥有自己的`package.json`、`pnpm-lock.yaml`、`pnpm-workspace.yaml`、TypeScript与构建配置、门禁脚本、开发Skills与文档；根`npm ci`和根workspace命令既不安装也不执行它。通过其自身owner——`templates/node-typescript/docs/architecture.md`、`docs/development.md`与`docs/testing.md`——修改，并在模板目录内通过Corepack运行其命令。不得把它加入根workspace、借外层`node_modules`解析其包或绕过其锁文件。
 
-`npm run check:template`是根验证入口：把作者文件导出到隔离目录，在其中执行`corepack pnpm install --frozen-lockfile --ignore-scripts`，构建产物平面，并驱动构建后CLI处理空源清单与非法参数。它证明取得与构建产物；模板完整门禁图是模板自身合同，由其自身CI工作流执行。根检查清单调用该入口，因此本地运行与产品CI共享同一定义，产品无需另一条重复工作流。`npm run export-template -- <new-output-directory>`创建单独的参考副本；它拒绝已存在目录，不复制依赖、构建产物或缓存。模板固定pnpm 11.28.5及自身锁文件中的工具链版本，manifest声明Node `>=24 <25`，其CI工作流重复该声明；其他平台及Node组合在观察到之前仍只是CI声明。
+`npm run check:template`将作者文件导出到隔离目录，安装锁定依赖、构建空项目并运行其测试套件。随后只在临时副本建立 workspace，验证遗漏编译引用会被拒绝，构建并运行真实产物，检查非法输入拒绝以及清理、重建。它不运行模板自身的完整门禁图。产品检查清单在本地及 CI 中调用同一入口。`npm run export-template -- <new-output-directory>`创建不含依赖、构建产物和缓存的参考副本，并拒绝已有目标目录。模板固定 pnpm 11.28.5 并拥有自身 CI 工作流；其他平台组合在实际观察前仍未验证。
+
+模板检查要求 Node `>=24 <25`。产品使用其他受支持的 Node 版本时，将 `PROJECT_GOVERNANCE_TEMPLATE_NODE` 设置为 Node 24 可执行文件的绝对路径。Corepack 和初始冻结安装离线使用已准备的 pnpm store；临时 workspace 夹具更新锁文件需要元数据时，可能访问配置的 registry。CI 预先准备固定包管理器及锁定包；这不改变 Skill 的离线安装。
 
 ## 安装与分发
 

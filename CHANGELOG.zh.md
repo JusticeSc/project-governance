@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md) | 中文
 
+## 0.2.0
+
+### 变更
+
+- Node／TypeScript 模板不再默认包含无关的插件市场应用和库；workspace 发现、项目策略、文档及检查使用项目的实际成员。持久化根依据声明配置推导；联合类型形状变化仍需兼容性评审，不再携带会话专属例外。见[迁移指南](docs/upgrade-guide/v0.1.1/empty-template/guide.zh.md)。
+- 独立 Skill 不再要求特定 Agent 的 Skills 符号链接。其 `--add-missing` 模式保护已有内容，并在仍有冲突需要协调时报告部分安装。
+- 模板取得检查验证空项目、可发现的应用／库workspace、产物消费及清理后重建，不再依赖已移除的示例。
+- 产品检查可为模板独立选择 Node 24。CI 预先准备固定版本的 pnpm 和锁定依赖；临时 workspace 夹具可以获取 registry 元数据，Skill 安装仍保持离线。
+- 使用 Git 夹具的 change-scope 测试采用与同类用例相同的有界超时。
+- 打包 smoke 将已安装 Skill 按普通文件复制，避免 Windows Node 22 的 `cpSync` 在非 ASCII 路径上崩溃。
+
 ## 0.1.1
 
 ### 变更

@@ -9,7 +9,7 @@ kind: "package-group"
 
 ## 摘要
 
-本工具包由 `packages/` 下按能力族分组的 npm 包组成。本检出只有一个分组：[`util/`](util/README.zh.md)，它保存应用与未来包共享的底层原语。把本页当作顶层地图：找到所属分组，再打开其 README 查看包列表。每个包都使用 `@deepseek-ai/dsh-*` scope，并且只属于一个分组；每个分组 README 是其包族的权威包地图。
+库位于 `packages/<group>/<package>/`，按真实能力族分组。本项目目前没有包分组或库。请求的行为需要库时，通过本页找到所属分组，再打开该分组 README 查看包列表；每个分组 README 是其包族的权威地图。包名由 manifest 定义，不要求沿用来源项目的 scope。
 
 ## 目录
 
@@ -24,27 +24,22 @@ kind: "package-group"
 <a id="package-groups"></a>
 ## 包分组
 
-每个包只属于一个分组；新包加入现有分组，新分组要更新自己的 README 与本表。
-
-| 分组 | 职责 |
-|---|---|
-| [`util/`](util/README.zh.md) | 在整个 workspace 中共享的底层库：格式 1 校验器及未来任何不承载领域语义的原语 |
+每个包只属于一个分组。职责合适时复用分组；新分组须更新自己的双语 README 与本导航。目前没有已声明包分组；只有真实分组拥有包时才新增导航。登记与文档见[新增包](../docs/cookbook/adding-a-package.zh.md)。
 
 -----
 
 <a id="release-expectations"></a>
 ## 发布预期
 
-包的 manifest 声明其发布意图。校验器是可发布库，带有公开的 `publishConfig` 与 `repository` 条目；生成器应用是 `private`，不发布。公开 API 处于预稳定阶段：在同一变更中更新所有仓库内消费方；外部可感知的破坏遵循[升级指南工作流](../.agents/skills/dsh-create-upgrade-guide/SKILL.md)。本检出没有 experimental 分组。
+包的 manifest 声明其发布意图。库遵循仓库的发布规则；应用为 private。合同变化时同步更新所有仓库内消费方；外部可感知的破坏在触发条件成立时遵循[升级指南工作流](../.agents/skills/dsh-create-upgrade-guide/SKILL.md)。发布版本及 registry 发布需要各自的授权与证据。
 
 -----
 
 <a id="dependencies"></a>
 ## 依赖
 
-依赖从应用与更高层包指向 `util/`；反向依赖不存在。`util/` 包不注册应用服务，也不拥有产品状态，因此其消费方保留领域语义。
+依赖遵循真实职责：库不依赖应用。由所属成员声明依赖，并在引入时审查跨包合同与策略分类。
 
-- 应用依赖校验器进行解析与安装参数构建；校验器的[manifest](util/plugin-market-index/package.json)拥有其外部依赖声明。
 - Workspace 依赖使用 `workspace:*`。
 - 新依赖需要当前消费方，并且无法合理使用标准库；`pnpm run constraints` 检查声明的依赖图。持续维护的替换依赖遵循[替换流程](../docs/development.zh.md#replacing-maintained-code-with-a-dependency)，由该流程拥有语义比较、集成证据与过时自有代码移除。
 

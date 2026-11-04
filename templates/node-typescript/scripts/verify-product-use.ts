@@ -11,7 +11,7 @@
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { readWorkspaceManifests, type WorkspaceManifest } from './check-workspace-constraints.ts'
-import { isRecord, isStringList, readManifestObject } from './manifest-json.ts'
+import { isNonemptyStringArray, isRecord, isStringList, readManifestObject } from './manifest-json.ts'
 
 const GATE = 'verify-product-use'
 const root = resolve(import.meta.dirname, '..')
@@ -43,7 +43,7 @@ export function readProductUsePolicy(repositoryRoot: string): ProductUsePolicy {
   if (!isStringList(roles)) throw new Error(`${GATE}: roles must be a non-empty list`)
   if (new Set(roles).size !== roles.length) throw new Error(`${GATE}: roles contains a duplicate`)
   const entries = 'entries' in parsed ? parsed.entries : undefined
-  if (!isStringList(entries)) throw new Error(`${GATE}: entries must be a non-empty list of workspace directories`)
+  if (!isNonemptyStringArray(entries)) throw new Error(`${GATE}: entries must be a list of workspace directories`)
   const rawPackages = 'packages' in parsed ? parsed.packages : undefined
   if (!isRecord(rawPackages)) {
     throw new Error(`${GATE}: packages must be an object keyed by package directory`)
@@ -122,6 +122,9 @@ export function productUseErrors(
   }
   const packageDirectories = new Set(manifests.map(entry => entry.dir).filter(dir => /^packages\/[^/]+\/[^/]+$/u.test(dir)))
   const errors: string[] = []
+  if (policy.entries.length === 0 && manifests.some(({ dir }) => dir !== '.')) {
+    errors.push(`workspace members exist but no product entry is declared in ${POLICY}`)
+  }
   for (const entry of policy.entries) {
     if (!memberByDirectory.has(entry)) errors.push(`entry ${entry} is not a workspace member`)
     else if (entry === '.') errors.push('the workspace root cannot be a product entry')

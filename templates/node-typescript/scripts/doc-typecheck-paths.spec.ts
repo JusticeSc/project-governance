@@ -4,17 +4,17 @@ import { builtDeclarationPath } from './doc-typecheck-paths.ts'
 describe('builtDeclarationPath', () => {
   it('maps package source directories and exact entry files to built declarations', () => {
     expect(builtDeclarationPath('./packages/*/*/src')).toBe('./packages/*/*/lib/types')
-    expect(builtDeclarationPath('./packages/core/session/src/index.ts'))
-      .toBe('./packages/core/session/lib/types/index.d.ts')
-    expect(builtDeclarationPath('./packages/core/session/src/types.ts'))
-      .toBe('./packages/core/session/lib/types/types.d.ts')
+    expect(builtDeclarationPath('./packages/core/runtime/src/index.ts'))
+      .toBe('./packages/core/runtime/lib/types/index.d.ts')
+    expect(builtDeclarationPath('./packages/core/runtime/src/types.ts'))
+      .toBe('./packages/core/runtime/lib/types/types.d.ts')
     expect(builtDeclarationPath('./packages/*/*/src/*')).toBe('./packages/*/*/lib/types/*')
     expect(builtDeclarationPath('./packages/util/example/src/channel'))
       .toBe('./packages/util/example/lib/types/channel')
   })
 
   it('rejects aliases without a supported source target', () => {
-    expect(() => builtDeclarationPath('./packages/core/session/source/index.ts'))
+    expect(() => builtDeclarationPath('./packages/core/runtime/source/index.ts'))
       .toThrow('cannot map workspace source path')
   })
 })

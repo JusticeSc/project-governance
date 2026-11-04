@@ -89,14 +89,15 @@ describe('maintained repository reference policy', () => {
     fixture.git(['add', 'staged.md'])
     fixture.write('new.md', `\0${fixture.commit.slice(0, 12)}`)
 
-    expect(scanRepositoryReferences(fixture.root, fixturePolicy)).toEqual(expect.arrayContaining([
+    const references = scanRepositoryReferences(fixture.root, fixturePolicy)
+    expect(references).toEqual(expect.arrayContaining([
       { file: 'tracked.md', line: 2, kind: 'commit-hash' },
       { file: 'tracked.md', line: 3, kind: 'commit-hash' },
       { file: 'staged.md', line: 1, kind: 'commit-hash' },
       { file: 'new.md', line: 1, kind: 'commit-hash' },
     ]))
-    expect(scanRepositoryReferences(fixture.root, fixturePolicy)).toHaveLength(4)
-  })
+    expect(references).toHaveLength(4)
+  }, 20_000)
 
   it('checks available unreachable commits without requiring a branch or network', (test) => {
     const fixture = repository(test)

@@ -10,6 +10,7 @@ import { typedImportProbe } from './project-policy.ts'
 import { readWorkspaceManifests } from './check-workspace-constraints.ts'
 import { removeFixtureSafely } from './test-fixture-cleanup.ts'
 import { copyWorkspaceFixture } from './workspace-fixture.ts'
+import { generateConfig } from './gen-tsconfig-paths.ts'
 
 const templateRoot = fileURLToPath(new URL('..', import.meta.url))
 const oxlintCli = fileURLToPath(new URL('../node_modules/oxlint/bin/oxlint', import.meta.url))
@@ -57,7 +58,7 @@ function typedFileClasses(repositoryRoot: string): TypedFileClass[] {
   for (const root of roots) {
     const absoluteRoot = join(repositoryRoot, root)
     if (!existsSync(absoluteRoot) || !statSync(absoluteRoot).isDirectory()) throw new Error('Missing typed file class: ' + root)
-    const files = globSync('**/*.ts', { cwd: absoluteRoot, exclude: ['**/node_modules/**', '**/lib/**'] })
+    const files = globSync('**/*.{ts,tsx}', { cwd: absoluteRoot, exclude: ['**/node_modules/**', '**/lib/**'] })
     if (files.length === 0) throw new Error('Typed file class has no TypeScript files: ' + root)
     const directories = new Set([absoluteRoot, ...files.map(file => dirname(join(absoluteRoot, file))),
       ...globSync('**/tsconfig.json', { cwd: absoluteRoot }).map(file => dirname(join(absoluteRoot, file)))])
@@ -154,6 +155,12 @@ probePromise()
   it('resolves a real workspace public API for typed rejection and exact recovery', async () => {
     const { repositoryRoot, runOxlint, writeContractConfig, typedFileClasses } = prepareLintCheckout()
     const suffix = randomUUID()
+    if (typedImportProbe === null) {
+      const members = readWorkspaceManifests(repositoryRoot).filter(({ dir }) => dir !== '.')
+      if (members.length > 1) throw new Error('typedImportProbe is required when multiple workspace members exist')
+      console.log('typed import probe: no cross-workspace consumer is declared.')
+      return
+    }
     const { consumerDirectory, specifier, exportName } = typedImportProbe
     if (!/^[a-zA-Z_$][\w$]*$/.test(exportName) || !/^(?:@[a-zA-Z0-9_.-]+\/)?[a-zA-Z0-9_.-]+$/.test(specifier)) {
       throw new Error('typedImportProbe must name a package-root runtime export')
@@ -177,6 +184,35 @@ probePromise()
     } finally {
       await Promise.all([rm(path, { force: true }), rm(configPath, { force: true })])
     }
+  }, 90_000)
+
+  it('rejects and recovers a cross-package typed violation in an isolated neutral workspace', async () => {
+    const { repositoryRoot, runOxlint, writeContractConfig } = prepareLintCheckout()
+    const library = join(repositoryRoot, 'packages/lint/probe/src')
+    const consumer = join(repositoryRoot, 'apps/lint-probe/tests')
+    await mkdir(library, { recursive: true })
+    await mkdir(consumer, { recursive: true })
+    await writeFile(join(library, 'index.ts'), 'export const value: number = 1\n')
+    await writeFile(join(library, '../package.json'), JSON.stringify({ name: '@lint/probe', type: 'module' }))
+    await writeFile(join(consumer, '../package.json'), JSON.stringify({ name: 'lint-probe', private: true, type: 'module' }))
+    const base = join(repositoryRoot, 'tsconfig.base.json')
+    await writeFile(base, generateConfig(await readFile(base, 'utf8'), [{ specifier: '@lint/probe', source: './packages/lint/probe/src' }]))
+    await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({
+      extends: base, compilerOptions: { noEmit: true, composite: false, incremental: false }, include: ['*.ts'],
+    }))
+    const config = await writeContractConfig(randomUUID())
+    const path = join(consumer, 'cross-package.ts')
+    const imported = "import { value } from '@lint/probe'\n"
+    await writeFile(path, imported + 'export async function probe(): Promise<number> { return await value }\n')
+    const args = ['--config', relative(repositoryRoot, config), '--format', 'unix', relative(repositoryRoot, path)]
+    const rejected = runOxlint(args)
+    expect(rejected.status, normalizedOutput(rejected)).toBe(1)
+    expect(normalizedOutput(rejected)).toContain('typescript(await-thenable)')
+    expect(normalizedOutput(rejected)).not.toContain('Unmatched file:')
+    await writeFile(path, imported + 'export function probe(): number { return value }\n')
+    const recovered = runOxlint(args)
+    expect(recovered.status, normalizedOutput(recovered)).toBe(0)
+    expect(normalizedOutput(recovered)).not.toContain('Unmatched file:')
   }, 90_000)
 
   it('runs JavaScript compatibility and nursery rules', async () => {

@@ -18,7 +18,6 @@ Five habits cover most of what follows, and each page is their application to on
 |---|---|
 | Generation, fetching, caching, output writing, error handling, timing, configuration, subprocesses, teardown | [general.md](general.md) |
 | Package exports, package shape, build faces, dependency declarations | [packages/AGENTS.md](../../packages/AGENTS.md) and [development.md](../development.md#typescript-project-layout) |
-| The index format and its validator types | [the format Agent Note](../../.agents/notes/implemented/feature/2026-10-02-plugin-market-index-format.md) and the [package README](../../packages/util/plugin-market-index/README.md) |
 | UI identity, shared controls, styling, remote contracts, recovery, derived projections or display resources | [conditional-domains.md](conditional-domains.md); activate only the rules whose objects exist |
 
 [dsh-code-review](../../.agents/skills/dsh-code-review/SKILL.md) reads this directory when judging a pull request, and the root [AGENTS.md](../../AGENTS.md) routes changes here.

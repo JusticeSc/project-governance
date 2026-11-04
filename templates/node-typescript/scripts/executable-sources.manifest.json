@@ -1,5 +1,3 @@
 {
-  "executableSources": {
-    "apps/plugin-market-generator/src/bin.ts": "The root `start` script launches this file as a process entry; it awaits the command result to set the exit code, and no module imports it."
-  }
+  "executableSources": {}
 }

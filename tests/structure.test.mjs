@@ -366,7 +366,7 @@ for (const name of ['canonical', 'alias']) {
     }
 
     const originalManifest = readFileSync(join(product, 'templates/node-typescript/package.json'))
-    const originalEntry = readFileSync(join(product, 'templates/node-typescript/apps/plugin-market-generator/src/bin.ts'))
+    const originalEntry = readFileSync(join(product, 'templates/node-typescript/scripts/run-gates.ts'))
     const script = join(root, 'scripts/export-template.mjs')
     const destination = join(temporary, 'export')
     const run = (...args) => spawnSync(process.execPath, [script, ...args], { cwd: temporary, encoding: 'utf8' })
@@ -374,7 +374,7 @@ for (const name of ['canonical', 'alias']) {
     assert.equal(success.status, 0, `${success.stdout}\n${success.stderr}`)
     assert.match(success.stdout, /Exported \d+ author files/u)
     assert.deepEqual(readFileSync(join(destination, 'package.json')), originalManifest)
-    assert.deepEqual(readFileSync(join(destination, 'apps/plugin-market-generator/src/bin.ts')), originalEntry)
+    assert.deepEqual(readFileSync(join(destination, 'scripts/run-gates.ts')), originalEntry)
 
     const missing = run()
     assert.equal(missing.status, 1, `${missing.stdout}\n${missing.stderr}`)
@@ -387,7 +387,7 @@ for (const name of ['canonical', 'alias']) {
     assert.match(occupied.stderr, /export-template:/u)
     assert.equal(readFileSync(sentinel, 'utf8'), 'owner content\n')
     assert.deepEqual(readFileSync(join(destination, 'package.json')), originalManifest)
-    assert.deepEqual(readFileSync(join(destination, 'apps/plugin-market-generator/src/bin.ts')), originalEntry)
+    assert.deepEqual(readFileSync(join(destination, 'scripts/run-gates.ts')), originalEntry)
   })
 }
 

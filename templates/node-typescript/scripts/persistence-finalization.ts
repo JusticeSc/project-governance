@@ -1,85 +1,78 @@
-/** Accepted declared market-index baselines and immutable acknowledgements, independent of publication evidence. */
-
+/** Accepted per-root persistence histories, independent of publication evidence. */
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { isDeepStrictEqual } from 'node:util'
 import { JSON_SCHEMA, load } from 'js-yaml'
 import type { PersistenceHistory, PersistenceHistoryEntry } from './persistence-changes.ts'
 import type { PersistenceRoot, PersistenceSchemaInventory } from './persistence-schema-model.ts'
 
 const DIRECTORY = 'docs/persistence-changes/finalized'
+const ID = /^[a-z][a-z0-9-]*$/u
 const DIGEST = /^[a-f0-9]{64}$/u
 const RECORD_ID = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/u
 
-type RootIdentity = Pick<PersistenceRoot, 'kind' | 'digest' | 'event' | 'surface'>
-
-/** Complete accepted baseline and semantic identities of its acknowledged history. */
+/** An accepted root and the exact history records on its predecessor chain. */
 export interface PersistenceFinalizationCheckpoint {
   readonly schemaVersion: 1
-  readonly marketFormatVersion: number
-  readonly roots: Readonly<Record<string, RootIdentity>>
+  readonly root: string
+  readonly recordId: string
+  readonly version: number | null
+  readonly digest: string
   readonly acceptedRecords: Readonly<Record<string, string>>
 }
 
-/** Latest finalized version and the record ids locked by retained checkpoints. */
+/** Accepted record ids and highest version for each separately finalized root. */
 export interface PersistenceFinalization {
-  readonly version: number
+  readonly versions: ReadonlyMap<string, number>
   readonly acceptedRecords: ReadonlySet<string>
 }
 
-function identity(root: PersistenceRoot): RootIdentity {
-  return { kind: root.kind, digest: root.digest,
-    ...(root.event === undefined ? {} : { event: root.event }),
-    ...(root.surface === undefined ? {} : { surface: root.surface }) }
-}
-
-function compare(left: string, right: string): number {
-  return left < right ? -1 : left > right ? 1 : 0
-}
-
-function rootMap(roots: readonly PersistenceRoot[]): Record<string, RootIdentity> {
-  return Object.fromEntries([...roots].sort((a, b) => compare(a.key, b.key)).map(root => [root.key, identity(root)]))
-}
-
-function recordDigest(entry: PersistenceHistoryEntry): string {
-  const record = entry.record
-  const semantic = { record: { schemaVersion: record.schemaVersion, id: record.id, baseline: record.baseline,
-    changes: [...record.changes].sort((a, b) => compare(a.root, b.root)).map(change => ({
-      root: change.root, previous: change.previous, after: change.after, decision: change.decision,
-    })) }, snapshot: { formatVersion: entry.snapshot.formatVersion,
-    roots: [...entry.snapshot.roots].sort((a, b) => compare(a.key, b.key)).map(root => ({
-      key: root.key, ...identity(root), schema: root.schema,
-    })) } }
-  return createHash('sha256').update('dsh-persistence-finalization-record-v1\n').update(JSON.stringify(semantic)).digest('hex')
-}
-
-function writerVersion(roots: readonly PersistenceRoot[]): number {
-  const schema = roots.find(root => root.key === 'MarketIndex')?.schema
-  const node = schema?.nodes[0]
-  const property = node?.kind === 'object' ? node.properties.find(property => property.name === 'format') : undefined
-  const version = property === undefined ? undefined : schema?.nodes[property.type]
-  if (version?.kind !== 'literal' || typeof version.value !== 'number' || !Number.isSafeInteger(version.value) || version.value < 0) {
-    throw new Error('persistence finalization requires a literal non-negative MarketIndex.format')
+function versionOf(root: PersistenceRoot): number | null {
+  if (root.versionField === undefined) return null
+  const node = root.schema.nodes[0]
+  const property = node?.kind === 'object' ? node.properties.find(item => item.name === root.versionField) : undefined
+  const value = property === undefined ? undefined : root.schema.nodes[property.type]
+  if (property?.optional !== false || value?.kind !== 'literal'
+    || typeof value.value !== 'number' || !Number.isSafeInteger(value.value) || value.value < 0) {
+    throw new Error(`${root.key}: finalization requires a declared numeric literal versionField`)
   }
-  return version.value
+  return value.value
 }
 
-/**
- * Capture a verified history without copying its self-contained schemas or recording a publication claim.
- * @param history - validated acknowledgement history matching the current inventory.
- * @param current - validated current-source inventory.
- * @returns checkpoint data for a new version-named file; existing checkpoints must be retained.
+function recordDigest(entry: PersistenceHistoryEntry, rootId: string): string {
+  const change = entry.record.changes.find(change => change.root === rootId)
+  const schema = entry.snapshot.roots.find(root => root.key === rootId) ?? null
+  return createHash('sha256').update('persistence-finalization-record-v2\n').update(JSON.stringify({
+    id: entry.record.id, baseline: entry.record.baseline, formatVersion: entry.snapshot.formatVersion, change, schema,
+  })).digest('hex')
+}
+
+/** Capture one root's acknowledged predecessor chain without a publication claim.
+ * @param history - validated acknowledgement history.
+ * @param current - complete current inventory matching the selected root's history tip.
+ * @param rootId - declared stable root id; other roots are not finalized.
+ * @returns immutable per-root record identities and its explicitly declared version, or null.
  */
 export function createPersistenceFinalizationCheckpoint(
-  history: PersistenceHistory, current: PersistenceSchemaInventory,
+  history: PersistenceHistory, current: PersistenceSchemaInventory, rootId: string,
 ): PersistenceFinalizationCheckpoint {
-  const recorded = [...history.tips.values()].flatMap(tip => tip.root === null ? [] : [tip.root])
-  if (JSON.stringify(rootMap(recorded)) !== JSON.stringify(rootMap(current.roots))) {
-    throw new Error('persistence finalization requires current schemas to match acknowledged history')
+  const item = current.roots.find(root => root.key === rootId)
+  const tip = history.tips.get(rootId)
+  if (item === undefined || tip?.root === null || tip?.root === undefined || !isDeepStrictEqual(tip.root, item)) {
+    throw new Error(`${rootId}: finalization requires the current root to match acknowledged history`)
   }
-  return { schemaVersion: 1, marketFormatVersion: writerVersion(current.roots), roots: rootMap(current.roots),
-    acceptedRecords: Object.fromEntries([...history.entries].sort((a, b) => compare(a.record.id, b.record.id))
-      .map(entry => [entry.record.id, recordDigest(entry)])) }
+  const entries = new Map(history.entries.map(entry => [entry.record.id, entry]))
+  const acceptedRecords: Record<string, string> = {}
+  let id: string | null = tip.id
+  while (id !== null) {
+    const entry = entries.get(id)
+    const change = entry?.record.changes.find(change => change.root === rootId)
+    if (entry === undefined || change === undefined || Object.hasOwn(acceptedRecords, id)) throw new Error(`${rootId}: invalid predecessor chain`)
+    acceptedRecords[id] = recordDigest(entry, rootId)
+    id = change.previous
+  }
+  return { schemaVersion: 1, root: rootId, recordId: tip.id, version: versionOf(item), digest: item.digest, acceptedRecords }
 }
 
 function object(value: unknown, label: string): Record<string, unknown> {
@@ -87,82 +80,78 @@ function object(value: unknown, label: string): Record<string, unknown> {
   return value as Record<string, unknown>
 }
 
-function status(root: string, path: string): number | undefined {
+function status(root: string, path: string): Record<string, string> | undefined {
   if (!existsSync(join(root, path))) return undefined
   const source = readFileSync(join(root, path), 'utf8').replaceAll('\r\n', '\n')
-  const openings = [...source.matchAll(/^```yaml market-format-finalization[ \t]*$/gmu)]
+  const openings = [...source.matchAll(/^```yaml persistence-finalization[ \t]*$/gmu)]
   if (openings.length === 0) return undefined
-  const blocks = [...source.matchAll(/^```yaml market-format-finalization[ \t]*\n([\s\S]*?)^```[ \t]*$/gmu)]
-  if (openings.length !== 1 || blocks.length !== 1) throw new Error(`${path}: expected one closed market-format-finalization record`)
-  const value = object(load((blocks[0] as RegExpMatchArray)[1] as string, { schema: JSON_SCHEMA }), path)
-  const version = value.latestFinalizedVersion
-  if (Object.keys(value).join(',') !== 'latestFinalizedVersion'
-    || typeof version !== 'number' || !Number.isSafeInteger(version) || version < 0) {
-    throw new Error(`${path}: expected only a non-negative latestFinalizedVersion`)
+  const blocks = [...source.matchAll(/^```yaml persistence-finalization[ \t]*\n([\s\S]*?)^```[ \t]*$/gmu)]
+  if (openings.length !== 1 || blocks.length !== 1) throw new Error(`${path}: expected one closed persistence-finalization record`)
+  const parsed = object(load(blocks[0]?.[1] ?? '', { schema: JSON_SCHEMA }), path)
+  if (Object.keys(parsed).join(',') !== 'roots') throw new Error(`${path}: expected roots mapping`)
+  const roots = object(parsed.roots, `${path} roots`)
+  for (const [id, recordId] of Object.entries(roots)) {
+    if (!ID.test(id) || typeof recordId !== 'string' || !RECORD_ID.test(recordId)) throw new Error(`${path}: invalid finalization record for ${id}`)
   }
-  return version
+  return roots as Record<string, string>
 }
 
-/**
- * Validate retained checkpoints against accepted history and collect their locked record ids.
+/** Validate retained root-owned checkpoints and their bilingual latest status.
  * @param root - checkout or isolated fixture root.
- * @param history - parsed acknowledgement entries, including later successors.
- * @returns finalization state, or undefined for a checkout with neither status nor checkpoints.
+ * @param history - parsed history including any unaccepted successors.
+ * @returns immutable accepted record ids and actual version bounds, or undefined without finalization.
  */
 export function loadPersistenceFinalization(root: string, history: Pick<PersistenceHistory, 'entries'>): PersistenceFinalization | undefined {
   const directory = join(root, DIRECTORY)
-  const files = existsSync(directory) ? readdirSync(directory).filter(file => file.endsWith('.json')).sort() : []
-  const version = status(root, 'docs/persistence-changes/README.md')
-  const translated = status(root, 'docs/persistence-changes/README.zh.md')
-  if (version === undefined && translated === undefined && files.length === 0) return undefined
-  if (version === undefined || translated !== version) throw new Error('persistence finalization status is missing or differs between languages')
-  if (!files.includes(`v${version}.json`)) throw new Error(`missing persistence finalization checkpoint v${version}.json`)
+  const folders = existsSync(directory) ? readdirSync(directory) : []
+  const en = status(root, 'docs/persistence-changes/README.md')
+  const zh = status(root, 'docs/persistence-changes/README.zh.md')
+  if (en === undefined && zh === undefined && folders.length === 0) return undefined
+  if (en === undefined || zh === undefined || JSON.stringify(Object.entries(en).sort()) !== JSON.stringify(Object.entries(zh).sort())) throw new Error('persistence finalization status is missing or differs between languages')
   const entries = new Map(history.entries.map(entry => [entry.record.id, entry]))
   const acceptedRecords = new Set<string>()
-  for (const file of files) {
-    const match = /^v(0|[1-9]\d*)\.json$/u.exec(file)
-    const capturedVersion = match === null ? NaN : Number(match[1])
-    if (!Number.isSafeInteger(capturedVersion) || capturedVersion > version) throw new Error(`unexpected persistence finalization checkpoint ${file}`)
-    const checkpoint = object(JSON.parse(readFileSync(join(directory, file), 'utf8')), file)
-    if (Object.keys(checkpoint).sort().join(',') !== 'acceptedRecords,marketFormatVersion,roots,schemaVersion'
-      || checkpoint.schemaVersion !== 1 || checkpoint.marketFormatVersion !== capturedVersion) {
-      throw new Error(`${file}: invalid persistence finalization checkpoint metadata`)
-    }
-    const locked = object(checkpoint.acceptedRecords, `${file} acceptedRecords`)
-    const selected: PersistenceHistoryEntry[] = []
-    for (const [id, expected] of Object.entries(locked)) {
-      if (!RECORD_ID.test(id) || typeof expected !== 'string' || !DIGEST.test(expected)) throw new Error(`${file}: invalid accepted record ${id}`)
-      const entry = entries.get(id)
-      if (entry === undefined || recordDigest(entry) !== expected) throw new Error(`${file}: finalized acknowledgement ${id} was removed or changed`)
-      selected.push(entry)
-      acceptedRecords.add(id)
-    }
-    if (selected.length === 0 || !selected.some(entry => entry.record.baseline)) throw new Error(`${file}: accepted records must include the persistence baseline`)
-    const predecessors = new Set<string>()
-    for (const entry of selected) for (const change of entry.record.changes) {
-      if (change.previous !== null) {
-        if (!Object.hasOwn(locked, change.previous)) throw new Error(`${file}: accepted history omits predecessor ${change.previous}`)
-        predecessors.add(JSON.stringify([change.previous, change.root]))
+  const versions = new Map<string, number>()
+  for (const folder of folders) {
+    if (!ID.test(folder) || !Object.hasOwn(en, folder)) throw new Error(`unexpected finalization root ${folder}`)
+    const files = readdirSync(join(directory, folder))
+    const latest = en[folder] as string
+    if (!files.includes(`${latest}.json`)) throw new Error(`${folder}: missing checkpoint ${latest}.json`)
+    let latestAccepted: ReadonlySet<string> | undefined
+    for (const file of files) {
+      const recordId = file.replace(/\.json$/u, '')
+      if (!file.endsWith('.json') || !RECORD_ID.test(recordId)) throw new Error(`${folder}: unexpected checkpoint ${file}`)
+      const checkpoint = object(JSON.parse(readFileSync(join(directory, folder, file), 'utf8')), file)
+      if (Object.keys(checkpoint).sort().join(',') !== 'acceptedRecords,digest,recordId,root,schemaVersion,version'
+        || checkpoint.schemaVersion !== 1 || checkpoint.root !== folder || checkpoint.recordId !== recordId
+        || (checkpoint.version !== null && (typeof checkpoint.version !== 'number' || !Number.isSafeInteger(checkpoint.version) || checkpoint.version < 0))
+        || typeof checkpoint.digest !== 'string' || !DIGEST.test(checkpoint.digest)) throw new Error(`${file}: invalid checkpoint metadata`)
+      const locked = object(checkpoint.acceptedRecords, file)
+      for (const [id, expected] of Object.entries(locked)) {
+        const entry = entries.get(id)
+        if (!RECORD_ID.test(id) || typeof expected !== 'string' || !DIGEST.test(expected) || entry === undefined || recordDigest(entry, folder) !== expected) throw new Error(`${file}: finalized acknowledgement ${id} was removed or changed`)
+        const change = entry.record.changes.find(change => change.root === folder)
+        if (change === undefined) throw new Error(`${file}: record ${id} does not change ${folder}`)
+        acceptedRecords.add(id)
       }
-    }
-    const tips = new Map<string, PersistenceRoot>()
-    for (const entry of selected) for (const change of entry.record.changes) {
-      if (!predecessors.has(JSON.stringify([entry.record.id, change.root])) && change.after !== null) {
-        const schema = entry.snapshot.roots.find(root => root.key === change.root)
-        if (schema === undefined) throw new Error(`${file}: accepted history omits schema ${change.root}`)
-        tips.set(change.root, schema)
+      const followed = new Set<string>()
+      let cursor: string | null = recordId
+      while (cursor !== null) {
+        const change: PersistenceHistoryEntry['record']['changes'][number] | undefined =
+          entries.get(cursor)?.record.changes.find(candidate => candidate.root === folder)
+        if (change === undefined || !Object.hasOwn(locked, cursor) || followed.has(cursor)) throw new Error(`${file}: invalid accepted predecessor chain`)
+        followed.add(cursor)
+        cursor = change.previous
       }
+      if (followed.size !== Object.keys(locked).length) throw new Error(`${file}: disconnected accepted predecessor chain`)
+      if (recordId === latest) latestAccepted = followed
+      const tip = entries.get(recordId)?.snapshot.roots.find(item => item.key === folder)
+      if (tip === undefined || tip.digest !== checkpoint.digest || versionOf(tip) !== checkpoint.version) throw new Error(`${file}: finalized root does not match accepted history`)
+      if (checkpoint.version !== null) versions.set(folder, Math.max(versions.get(folder) ?? 0, checkpoint.version as number))
     }
-    const expectedRoots = rootMap([...tips.values()])
-    const declaredRoots = object(checkpoint.roots, `${file} roots`)
-    if (Object.keys(declaredRoots).length !== tips.size || Object.entries(expectedRoots).some(([key, expected]) => {
-      const actual = declaredRoots[key]
-      if (actual === undefined) return true
-      const value = object(actual, `${file} ${key}`)
-      return Object.keys(value).sort().join(',') !== Object.keys(expected).sort().join(',')
-        || Object.entries(expected).some(([field, expectedValue]) => value[field] !== expectedValue)
-    })) throw new Error(`${file}: finalized roots do not match complete accepted history`)
-    if (writerVersion([...tips.values()]) !== capturedVersion) throw new Error(`${file}: accepted MarketIndex.format does not match finalized version`)
+    if (latestAccepted === undefined) throw new Error(`${folder}: latest status is missing`)
+    const accepted = latestAccepted
+    if (files.some(file => !accepted.has(file.replace(/\.json$/u, '')))) throw new Error(`${folder}: latest status omits a retained checkpoint`)
   }
-  return { version, acceptedRecords }
+  for (const id of Object.keys(en)) if (!folders.includes(id)) throw new Error(`${id}: missing finalization directory`)
+  return { versions, acceptedRecords }
 }

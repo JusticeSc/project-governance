@@ -3,11 +3,11 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/cli-help.md
 /cli-help-reference:
-  en: 106e90da625e4cfb
-  zh: 63c4149719f59dc8
-/cli-help-reference/generator-help:
-  en: e4c00209f15754c7
-  zh: 0845c22f247993dd
+  en: 1aada1c3329cb2ab
+  zh: c171024e5c79497c
+/cli-help-reference/declared-cli-help:
+  en: bf3ec74d63409e06
+  zh: 15f981d6a87d2bf5
 /cli-help-reference/updating-help:
-  en: d9fbf215977bcb18
-  zh: 20ae90ed695a4945
+  en: f6dacb55b2e470e2
+  zh: a15d89777c6e56f0

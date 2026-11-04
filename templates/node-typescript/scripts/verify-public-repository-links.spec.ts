@@ -17,7 +17,7 @@ describe('repository link policy', () => {
     const jsonEscapedRepository = unavailableRepository.replace('/', '\\/')
     const unicodeEscapedRepository = unavailableRepository.replace('/', String.raw`\u002f`)
     const source = [
-      'https://github.com/deepseek-ai/deepseek-harness',
+      'https://github.com/example/project',
       `https://github.com/${unavailableRepository.toUpperCase()}/issues/1`,
       `https://github.com/${encodedRepository}/issues/2`,
       `https://github.com/${htmlEncodedRepository}/issues/3`,
@@ -67,6 +67,7 @@ describe('configured unavailable repositories through the documentation aggregat
     if (!existsSync(join(checkout, '.gitignore'))) copyFileSync(join(checkout, 'gitignore'), join(checkout, '.gitignore'))
     symlinkSync(join(sourceRoot, 'node_modules'), join(checkout, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
     for (const [base, depth] of [['apps', 1], ['packages', 2]] as const) {
+      if (!existsSync(join(sourceRoot, base))) continue
       let directories: string[] = [base]
       for (let level = 0; level < depth; level++) {
         directories = directories.flatMap(directory =>

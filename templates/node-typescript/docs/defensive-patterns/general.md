@@ -92,7 +92,7 @@ The judged condition is the item-by-item comparison of observable behavior befor
 
 ```sh
 # The move keeps paths and exit codes; the reference updates are the whole diff.
-git mv apps/old/src/fetch.ts apps/plugin-market-generator/src/fetch.ts
+git mv apps/old/src/fetch.ts apps/new/src/fetch.ts
 ```
 
 ```ts ignore-check

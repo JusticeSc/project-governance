@@ -151,31 +151,35 @@ describe('translation pairing manifest', () => {
 describe('translation pairing switchers', () => {
   it('exempts only explicitly configured generated English sources from reciprocal switchers', () => {
     expect(requiresSourceLanguageSwitcher('docs/cli-help.md')).toBe(true)
-    const generated = ['docs/order-catalog.md']
-    expect(requiresSourceLanguageSwitcher('docs/order-catalog.md', generated)).toBe(false)
+    const generated = ['docs/generated-catalog.md']
+    expect(requiresSourceLanguageSwitcher('docs/generated-catalog.md', generated)).toBe(false)
     expect(requiresSourceLanguageSwitcher('docs/architecture.md', generated)).toBe(true)
-    expect(requiresSourceLanguageSwitcher('packages/orders/processor/README.md', generated)).toBe(true)
+    expect(requiresSourceLanguageSwitcher('packages/core/widget/README.md', generated)).toBe(true)
+  })
+
+  it('keeps language switchers project-relative without a public repository', () => {
+    expect(languageSwitcherTargets('docs/guide.zh.md')).toEqual(['guide.zh.md'])
   })
 
   it('accepts only the canonical public URL for an absolute switcher', () => {
-    const blobRoot = 'https://github.com/example/order-service/blob/main/'
-    const targets = languageSwitcherTargets('python/sdk/README.zh.md', blobRoot)
-    expect(targets).toEqual(['README.zh.md', blobRoot + 'python/sdk/README.zh.md'])
-    expect(languageSwitcherTargets('python/sdk/README.zh.md', 'https://github.com/other/shop/blob/release/')).not.toContain(targets[1])
-    const canonicalMarkdown = '# README\n\nEnglish | [中文](' + blobRoot + 'python/sdk/README.zh.md)\n'
+    const blobRoot = 'https://github.com/example/project/blob/main/'
+    const targets = languageSwitcherTargets('packages/core/widget/README.zh.md', blobRoot)
+    expect(targets).toEqual(['README.zh.md', blobRoot + 'packages/core/widget/README.zh.md'])
+    expect(languageSwitcherTargets('packages/core/widget/README.zh.md', 'https://github.com/example/another-project/blob/main/')).not.toContain(targets[1])
+    const canonicalMarkdown = '# README\n\nEnglish | [中文](' + blobRoot + 'packages/core/widget/README.zh.md)\n'
     const canonical = parseTranslationMarkdown(canonicalMarkdown)
     const wrongMarkdown = '# README\n\nEnglish | [中文](' + blobRoot + 'other/README.zh.md)\n'
     const wrongPath = parseTranslationMarkdown(wrongMarkdown)
 
     expect(translationStructureSignature(canonical, targets, {
       repoRoot: process.cwd(),
-      sourcePath: 'python/sdk/README.md',
+      sourcePath: 'packages/core/widget/README.md',
       isTranslationPairSource: fixturePairSource,
       markdown: canonicalMarkdown,
     }).links).toEqual([])
     expect(translationStructureSignature(wrongPath, targets, {
       repoRoot: process.cwd(),
-      sourcePath: 'python/sdk/README.md',
+      sourcePath: 'packages/core/widget/README.md',
       isTranslationPairSource: fixturePairSource,
       markdown: wrongMarkdown,
     }).links).toEqual([
@@ -397,14 +401,14 @@ describe('translation scope discovery', () => {
     'SAFETY.md',
     'SAFETY.zh.md',
     'SAFETY.i18n.yaml',
-    'apps/cli/README.md',
+    'apps/console/README.md',
     'future/subtree/readme.md',
     'packages/example/README.zh.md',
-    'native/example/README.i18n.yaml',
+    'packages/platform/example/README.i18n.yaml',
     '.agents/notes/proposed/feature.md',
     'docs/guide.md',
-    'python/sdk-runtime/README.md',
-    'python/sdk-runtime/src/deepseek_harness_runtime/README.md',
+    'packages/sdk/runtime/README.md',
+    'packages/sdk/runtime/src/runtime/README.md',
   ])('includes %s', (file) => {
     expect(isTranslationScopeFile(file)).toBe(true)
   })
@@ -414,7 +418,7 @@ describe('translation scope discovery', () => {
     'packages/example/CONTRIBUTING.md',
     'packages/example/BRAND_GUIDELINES.md',
     'other/tutorial.md',
-    'website/reference.md',
+    'site/reference.md',
     'packages/example/README.txt',
     'packages/example/node_modules/dependency/README.md',
     'packages/example/lib/README.md',

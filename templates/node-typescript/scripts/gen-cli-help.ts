@@ -8,12 +8,14 @@
  */
 
 import { execFile } from 'node:child_process'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, globSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { generatedRegions, renderGeneratedRegion, spliceGeneratedRegion } from './translation-pairing.ts'
 import { isRecord, isStringArray, readManifestObject } from './manifest-json.ts'
+import { readWorkspaceManifests } from './check-workspace-constraints.ts'
+import { applicationEntrypointPolicy } from './project-policy.ts'
 
 const GATE = 'gen-cli-help'
 const root = resolve(import.meta.dirname, '..')
@@ -54,7 +56,7 @@ export function readCliHelpPolicy(repositoryRoot: string): CliHelpPolicy {
   if (typeof english !== 'string' || typeof chinese !== 'string' || english === chinese) {
     throw new Error(`${GATE}: the policy needs distinct English and Chinese page paths`)
   }
-  if (!Array.isArray(rawCommands) || rawCommands.length === 0) throw new Error(`${GATE}: commands must be a non-empty list`)
+  if (!Array.isArray(rawCommands)) throw new Error(`${GATE}: commands must be a list`)
   const commands: CliHelpCommand[] = []
   const ids = new Set<string>()
   for (const item of rawCommands) {
@@ -124,6 +126,18 @@ function renderRegion(entries: readonly { command: CliHelpCommand; output: strin
 export async function main(): Promise<void> {
   const check = process.argv.includes('--check')
   const policy = readCliHelpPolicy(root)
+  if (policy.commands.length === 0) {
+    const hasBins = readWorkspaceManifests(root).some(({ manifest }) => manifest.bin !== undefined)
+    const manifest = readManifestObject(root, 'package.json', GATE)
+    const scripts = isRecord(manifest.scripts) ? manifest.scripts : {}
+    const hasRootLaunchers = Object.keys(scripts).some(name => name === 'start' || name.startsWith('start:') || name.startsWith('demo:'))
+    const hasLaunchers = Object.keys(applicationEntrypointPolicy.rootLaunchers).length > 0
+      || Object.keys(applicationEntrypointPolicy.executableSources).length > 0
+    const hasShebang = globSync(['apps/*/src/**/*.{ts,tsx,js,mjs,cjs}', 'packages/*/*/src/**/*.{ts,tsx,js,mjs,cjs}'], { cwd: root })
+      .some(path => readFileSync(resolve(root, path), 'utf8').startsWith('#!'))
+    if (hasBins || hasLaunchers || hasRootLaunchers || hasShebang) throw new Error(`${GATE}: CLI entrypoints exist but no help commands are declared`)
+    console.log(`${GATE}: no CLI entrypoints or help commands declared.`)
+  }
   const region = renderGeneratedRegion(policy.slug, renderRegion(await Promise.all(
     policy.commands.map(async command => ({ command, output: await collectHelp(command) })),
   )))

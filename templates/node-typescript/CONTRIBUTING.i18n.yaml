@@ -3,17 +3,17 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write CONTRIBUTING.md
 /contributing:
-  en: 07f664703dc15b1f
-  zh: fcb0e5a4ca8eb598
+  en: bf336876f879933b
+  zh: 198299e03d0591f4
 /contributing/before-you-change-code:
   en: 9d0b30a6717465e0
   zh: 2fb61b74ce958b09
 /contributing/workflow:
-  en: 395388edc801e3b0
-  zh: 917dfc6423accfcc
+  en: 7cffb5bce7cb2746
+  zh: e6d96604718dfcd3
 /contributing/verify:
-  en: 62674c315cd360ab
-  zh: a8d089d2c3703a4f
+  en: 86540b9ce8aa4d18
+  zh: f7a1ef3abfa85e91
 /contributing/review:
   en: 8c8c130e2c50f15b
   zh: 70b034fff589fe27

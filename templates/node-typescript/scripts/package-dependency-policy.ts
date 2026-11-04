@@ -9,8 +9,6 @@ export interface PackageDependencyPolicy {
 }
 export const PACKAGE_DEPENDENCY_POLICY: PackageDependencyPolicy = {
   configurationOnlyDevDependencies: {},
-  safeHostDependencyExports: {
-    '@deepseek-ai/dsh-plugin-market-index': ['MAX_INLINE_ICON_BYTES', 'parseMarketIndex'],
-  },
+  safeHostDependencyExports: {},
   peerRequiredHostExports: {},
 }

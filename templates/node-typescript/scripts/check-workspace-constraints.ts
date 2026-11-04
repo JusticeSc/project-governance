@@ -58,7 +58,7 @@ const repositoryVersion = rootManifest.version
  * Read the root manifest and every member declared by pnpm-workspace.yaml.
  * @param repositoryRoot - repository or fixture root containing the workspace declaration.
  * @returns Manifests with normalized repository-relative directories.
- * @throws When the workspace declaration is invalid or matches no member manifests.
+ * @throws When the declaration is invalid, a member is outside the project hierarchy, or existing business members or source are excluded.
  */
 export function readWorkspaceManifests(repositoryRoot: string): WorkspaceManifest[] {
   const config = loadYaml(readFileSync(join(repositoryRoot, 'pnpm-workspace.yaml'), 'utf8'))
@@ -73,7 +73,34 @@ export function readWorkspaceManifests(repositoryRoot: string): WorkspaceManifes
     cwd: repositoryRoot,
     exclude: ['**/node_modules/**', '**/.git/**', ...exclude],
   }).map(path => path.replaceAll('\\', '/'))
-  if (paths.length === 0) throw new Error('pnpm-workspace.yaml: packages matched no workspace manifests')
+  const members = new Set(paths.map(path => dirname(path).replaceAll('\\', '/')).filter(dir => dir !== '.'))
+  for (const dir of members) {
+    if (!/^(?:apps\/[^/]+|packages\/[^/]+\/[^/]+)$/u.test(dir)) {
+      throw new Error(`pnpm-workspace.yaml: workspace member ${dir} is outside the apps/<app> or packages/<group>/<package> hierarchy`)
+    }
+  }
+  const businessFiles = globSync([
+    'apps/**/package.json', 'packages/**/package.json',
+    'apps/**/src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}', 'packages/**/src/**/*.{ts,tsx,mts,cts,js,mjs,cjs}',
+  ], { cwd: repositoryRoot, exclude: ['**/node_modules/**', '**/lib/**'] })
+  for (const file of businessFiles) {
+    const normalized = file.replaceAll('\\', '/')
+    if (normalized.endsWith('/package.json')) {
+      const dir = dirname(normalized).replaceAll('\\', '/')
+      if (!/^(?:apps\/[^/]+|packages\/[^/]+\/[^/]+)$/u.test(dir)) {
+        throw new Error(`pnpm-workspace.yaml: package manifest ${normalized} is outside the apps/<app> or packages/<group>/<package> hierarchy`)
+      }
+      if (!members.has(dir)) {
+        throw new Error(`pnpm-workspace.yaml: ${normalized} belongs to ${dir}, which is not a declared workspace member`)
+      }
+      continue
+    }
+    const owner = /^(apps\/[^/]+|packages\/[^/]+\/[^/]+)\//u.exec(normalized)?.[1]
+    if (owner !== undefined && !members.has(owner)) {
+      throw new Error(`pnpm-workspace.yaml: ${normalized} belongs to ${owner}, which is not a declared workspace member`)
+    }
+    if (owner === undefined) throw new Error(`pnpm-workspace.yaml: ${normalized} is outside the apps/<app> or packages/<group>/<package> hierarchy`)
+  }
   return [...new Set(['package.json', ...paths])].sort().map(path => ({
     dir: dirname(path).replaceAll('\\', '/'),
     manifest: readJson(join(repositoryRoot, path)),
@@ -226,6 +253,7 @@ export function checkWorkspaceManifest({ dir, manifest }: WorkspaceManifest, exp
 function checkHierarchyShape(): string[] {
   const errors: string[] = []
   const packagesRoot = join(root, 'packages')
+  if (!existsSync(packagesRoot)) return errors
   for (const group of readdirSync(packagesRoot, { withFileTypes: true })) {
     if (!group.isDirectory()) continue
     const groupRel = join('packages', group.name)

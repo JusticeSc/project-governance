@@ -31,12 +31,12 @@ There is no universal local baseline beyond the hooks. Every behavior change nee
 When the outgoing change adds or changes a resource-owning or asynchronous test, fixture, helper, or CI execution path, use [dsh-ci-test-reliability](../dsh-ci-test-reliability/SKILL.md) first to decide whether restoration, negative-control, quiescent-teardown, or concurrent-process evidence applies. This skill still selects the commands and avoids repeating evidence that already passed.
 
 - **Validator behavior:** run the owning Vitest file or focused test name. Add adjacent package tests when a shared rule changes; leave repository-wide coverage to CI unless the change is genuinely cross-cutting or the user requests it.
-- **Generator behavior:** run the owning app spec, and use the test-only `file` Git transport for Git cases. A change to fetching, caching, or output writing also needs the world-verifying assertion for the affected file or cache, not only a returned-object check.
+- **Generation or output behavior:** run the owning spec; Git cases use the test-only `file` transport. Changes to fetching, caching, or output writing also need assertions against affected files or cache, not only returned objects.
 - **Documentation, Agent Notes, or doc-linked comments:** run `pnpm run doc-sync`; run `pnpm run lint` when a code block or comment changed.
 - **CLI-visible output or exit status:** run the focused CLI spec, and run the built binary after `pnpm run build` when the packaged entry path changed.
 - **Package manifests, public exports, build configuration, or built entry paths:** run `pnpm run build`, `pnpm run hygiene`, and the owning built-artifact check. A packed consumer uses only the root export; verify that no source subpath or `src/**` publication leaked in.
 - **Repository test and script types:** `pnpm run build:artifacts` checks package projects only. Before claiming completion of TypeScript changes, run `pnpm run build:check` after the latest `build:artifacts`, or run `pnpm run build`; `build:check` reads existing output and never rebuilds it.
-- **Coverage:** `pnpm run test:coverage` enforces per-file 100% statements, branches, functions, and lines over package runtime sources under `packages/*/*/src/**/*.ts`, with no product-file exemptions. It does not impose a generator-app V8 threshold; select the app's required evidence under the [testing policy](../../../docs/testing.md).
+- **Coverage:** `pnpm run test:coverage` enforces per-file 100% statements, branches, functions, and lines over `.ts` and `.tsx` package runtime sources under `packages/*/*/src/`, with no product-file exemptions. It does not impose an app V8 threshold; select the app's required evidence under the [testing policy](../../../docs/testing.md).
 
 Do not manually repeat a passing check merely because commit or push follows. In particular, do not run typecheck immediately before pushing solely to duplicate the `pre-push` hook.
 
@@ -47,9 +47,9 @@ Pass Vitest file and name filters directly after the script name with `pnpm run`
 Test selection and coverage selection are separate. A Vitest file filter chooses which tests run, while the repository configuration otherwise measures every source file. When focused coverage is relevant, name both the owning tests and the source files they must prove:
 
 ```sh
-pnpm exec vitest run packages/util/plugin-market-index/tests/<behavior>.spec.ts \
+pnpm exec vitest run 'packages/<group>/<package>/tests/<behavior>.spec.ts' \
   --coverage \
-  --coverage.include='packages/util/plugin-market-index/src/**/*.ts'
+  --coverage.include='packages/<group>/<package>/src/**/*.ts'
 ```
 
 Use an exact source file when the behavior is confined to one module. Repeat `--coverage.include` for multiple affected files or packages, and pass every owning test file needed to exercise that scope. The per-file 100% thresholds still apply inside the selected scope. Do not use `--passWithNoTests`, lower thresholds, or narrow the include merely to hide an uncovered affected file.

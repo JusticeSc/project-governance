@@ -32,7 +32,7 @@ Host 拥有权威业务状态；Client mirror 声明稳定 identity，以及延�
 
 ## 派生状态、持久化与资源
 
-权威操作 commit 后才发布通知、派生状态与外部可见结果；失败时 log、view 与 feed 保持一致。一个异步操作使用一个生命周期 controller 或 transaction，除非另一个 readiness、reservation 或 settlement point 确有独立 owner。持久格式与历史流程归 [persistence inventory](../persistence-changes/README.zh.md)，不归本页；不能为了迁移通过而改写已发布输入或用户数据。
+权威操作 commit 后才发布通知、派生状态与外部可见结果；失败时 log、view 与 feed 保持一致。一个异步操作使用一个生命周期 controller 或 transaction，除非另一个 readiness、reservation 或 settlement point 确有独立 owner。遵循[持久化声明及历史流程](../cookbook/starting-a-project.zh.md#3-declare-actual-persistence)，不能为了迁移通过而改写已发布输入或用户数据。
 
 权威 log 派生 projection 或等价 cache 使用唯一公开读取/计算路径，默认完整计算；缩窄计算须 owning domain expert 确认。部分 projection 只服务 UI 可用性，不能决定外部结果。其 Client 边界显式返回 miss/stale，不静默冷读整个 log，小历史也无例外。Host 必要冷读，以及无 projection 时独立命名的 cold-read 操作仍合法。这不禁止普通任意缓存重新计算。
 
@@ -43,4 +43,4 @@ Host 拥有权威业务状态；Client mirror 声明稳定 identity，以及延�
 
 读取包显示元数据时不激活或执行包，包括 disabled 或不可信插件。标题与描述独立 fallback。字段缺失可 fallback；malformed JSON 或非法字段须给逐包 diagnostic。图片包含在发布 `files`，真实解析留在包边界内，拒绝绝对路径、URL、逃逸路径或 symlink。图片及其依赖必须自包含；SVG 作为 image 渲染而非 inline HTML。显式非法 icon 保留有效 text 并诊断，不再尝试竞争 icon export；缺失或不可解码图片可用默认图。
 
-包根与插件 subpath 地址遵循实际协议：subpath 不是包，不能读取虚构的嵌套 `package.json`。允许格式、最大字节数与 locale chain 是显式 metadata 合同参数，不是普遍上传限制。market generator 输出 icon 本身不代表已建立本地已安装插件的 metadata 协议。
+包根与插件 subpath 地址遵循实际协议：subpath 不是包，不能读取虚构的嵌套 `package.json`。允许格式、最大字节数与 locale chain 是显式 metadata 合同参数，不是普遍上传限制。生成的输出资源本身不代表已建立安装包的 metadata 协议。
