@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for conditional-domains.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/defensive-patterns/conditional-domains.md
+/conditional-domain-rules:
+  en: 185fb6a4713e7e93
+  zh: c4f812632ad6a5f2
+/conditional-domain-rules/ui-identity-and-state:
+  en: db0b29ec3a1c838a
+  zh: 74b4c4a383da8578
+/conditional-domain-rules/client-styling-and-assets:
+  en: 1f729d04b139dd1b
+  zh: ffa3216741e3b343
+/conditional-domain-rules/remote-contracts-and-recovery:
+  en: c6e8a0834b26a0ba
+  zh: 152c3e0d78585527
+/conditional-domain-rules/derived-state-persistence-and-resources:
+  en: 10f92a5335b4fab2
+  zh: 3809e942bae6efb7
+/conditional-domain-rules/display-metadata-without-activation:
+  en: 064ae59e231549e1
+  zh: 068215adb7473bfd

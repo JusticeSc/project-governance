@@ -1,0 +1,33 @@
+# Development
+
+English | [中文](development.zh.md)
+
+## Prepare
+
+Use Node.js >=22.19.0 and npm. Run npm ci --ignore-scripts from the workspace root. The lock owns dependency versions. Do not use a sibling source tree, global parser, NODE_PATH or an undeclared relative package import as a missing-dependency workaround.
+
+## Change
+
+Read [AGENTS.md](../AGENTS.md), the actual task and the owning package README before changing code. Production code lives in the owning src/ (the executable application uses bin/); permanent behavioural regressions live in its tests/. Root tooling in scripts/ and its regressions in tests/ declare their own dependencies instead of relying on workspace hoisting. Change exported contracts and callers together. General source rules stay in [references](../references/index.md), not copied into package READMEs.
+
+## Select verification
+
+Run the narrow owning package test when that layer is sufficient, then exercise the real changed entry. Root npm run check executes governance-checks.json: syntax, the static package-structure gate, workspace and root tests, declared self-documentation predicates, and the template export/build check. npm run check:structure runs only the structure gate, and npm test runs each workspace's own test script and then the root tests. The gate parses authored source without building it: it checks declared public entries, package-name imports and published subpaths, workspace declarations and cycles, leaves computed specifiers, aliased loaders and dynamic resolution unproven, and forbids authored source links; it emits no code. npm run smoke packs this product, installs it in a separate consumer, prepares locked dependencies and exercises the installed consumer's success, refusal and recovery. See [testing](testing.md) for what these runs cannot prove.
+
+The same check definition is used by local orchestration and CI. This does not require every focused edit to run the entire CI matrix. Existing valid evidence is reused until its inputs or prerequisites change. A hook, if deliberately configured by a consumer, is not a substitute for behaviour verification or a remote required check.
+
+## Documentation and pairing
+
+Root READMEs, docs and package maps/READMEs have English and Chinese counterparts. Edit and review both in the same change. Then explicitly regenerate the named pair records with the documentation package's verify-translation-pairing --write command; normal verification is read-only. Do not regenerate a record to hide an untranslated or structurally changed counterpart. Normative reference bodies retain their existing working language and are not silently exempted members of this bilingual corpus.
+
+When changing a predicate, prove a plausible invalid consumer is rejected and a valid consumer remains accepted. Do not shrink a configured corpus or remove a meaningful assertion for a green run. An external service, secret, runner or approval that was not exercised remains unverified.
+
+## Template workspace
+
+`templates/node-typescript/` is a separate pnpm project, not a member of the root npm workspace. It has its own `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, TypeScript and build configurations, its gate scripts, development Skills and documentation; root `npm ci` and root workspace commands neither install nor execute it. Change it through its own owners — `templates/node-typescript/docs/architecture.md`, `docs/development.md` and `docs/testing.md` — and run its commands from the template directory through Corepack. Never add it to the root workspace, resolve its packages from the outer `node_modules` or bypass its lockfile.
+
+`npm run check:template` is the root verification entry: it exports the authored files into an isolated directory, runs `corepack pnpm install --frozen-lockfile --ignore-scripts` there, builds the artifact plane and drives the built CLI on an empty source list and on a refused argument. It proves acquisition and the built artifact; the template's complete gate graph is its own contract and runs from its own CI workflow. The root check list invokes that entry, so local runs and the product's CI share one definition and no separate product workflow repeats it. `npm run export-template -- <new-output-directory>` is the same export used to hand a copy to another project; it refuses an existing directory and copies no dependencies, build output or caches, and it also works from an installed Skill seat. The template fixes pnpm 11.28.5 and its own toolchain pins in its lockfile, declares Node `>=24 <25` in its manifest, and repeats that declaration in its CI workflow; other platform and Node combinations remain CI declarations until observed.
+
+## Install and distribute
+
+Use npm run install-skill -- <existing-repository>. The installed seat needs npm ci --ignore-scripts before workspace commands run. The root files allowlist and lock are shared by installation and packed-payload verification; packages are local workspace members, not independently published dependencies. The allowlist names template author files individually rather than the `templates/` directory, so author sources, manifests, lockfile, configurations, scripts and documentation travel without installed dependencies, build output or caches; the installer copies them as files and never installs the template workspace. There is no in-place installer update, registry publication or automatic CI activation. Read [release responsibilities](../references/release.md) before any separately authorised release.

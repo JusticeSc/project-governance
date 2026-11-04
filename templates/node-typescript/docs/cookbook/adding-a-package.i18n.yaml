@@ -1,0 +1,25 @@
+# Bilingual-pair consistency record for adding-a-package.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/cookbook/adding-a-package.md
+/cookbook-adding-a-workspace-package:
+  en: a9aae85e17fc796d
+  zh: f6d88b6956750122
+/cookbook-adding-a-workspace-package/1-create-the-package:
+  en: 69d526faad7b7935
+  zh: b6262f1e65ad4ea4
+/cookbook-adding-a-workspace-package/2-register-it-in-the-root-configs:
+  en: e861fd3c9ea3217d
+  zh: bce2990d034c5587
+/cookbook-adding-a-workspace-package/3-decide-the-package-topology:
+  en: 50cfb7a88c114170
+  zh: ec8c84b88a4e0314
+/cookbook-adding-a-workspace-package/3-decide-the-package-topology/name-the-role-that-exists:
+  en: e0e69a711514e8b6
+  zh: f9ef4d9a5a567663
+/cookbook-adding-a-workspace-package/4-write-the-package-readme:
+  en: fcf1cd47313efc70
+  zh: b7d667943afeb65a
+/cookbook-adding-a-workspace-package/5-verify:
+  en: e9881b2b8c9de3b5
+  zh: 523a336a5b9c2f35

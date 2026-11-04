@@ -1,0 +1,27 @@
+{
+  "blockedTerms": [
+    {
+      "term": "TBD",
+      "reason": "An unresolved decision must name the owner and the condition that settles it."
+    },
+    {
+      "term": "to be determined",
+      "reason": "An unresolved decision must name the owner and the condition that settles it."
+    },
+    {
+      "term": "somehow",
+      "reason": "Name the mechanism, actor, or evidence instead of an unexplained path."
+    }
+  ],
+  "excludedPrefixes": [
+    ".agents/notes/archived/",
+    "vendor/",
+    "pnpm-lock.yaml",
+    "scripts/concrete-terms.manifest.json"
+  ],
+  "requiredRoots": [
+    "AGENTS.md",
+    "packages/",
+    "docs/"
+  ]
+}

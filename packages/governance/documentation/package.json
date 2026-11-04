@@ -1,0 +1,40 @@
+{
+  "name": "@project-governance/documentation",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Documentation gates: Markdown link/wrapping/budget checks, bilingual pairing records, package README contracts, subsystem-page ownership, repository-reference policy, and documented TypeScript compilation and equivalence.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "bin": {
+    "doc-typecheck": "./src/doc-typecheck.mjs",
+    "verify-doc-budgets": "./src/verify-doc-budgets.mjs",
+    "verify-md-links": "./src/verify-md-links.mjs",
+    "verify-md-wrap": "./src/verify-md-wrap.mjs",
+    "verify-package-readme-limitations": "./src/verify-package-readme-limitations.mjs",
+    "verify-package-readme-summaries": "./src/verify-package-readme-summaries.mjs",
+    "verify-repository-references": "./src/verify-repository-references.mjs",
+    "verify-subsystem-pages": "./src/verify-subsystem-pages.mjs",
+    "verify-translation-pairing": "./src/verify-translation-pairing.mjs",
+    "verify-type-equiv": "./src/verify-type-equiv.mjs",
+    "verify-upgrade-guides": "./src/verify-upgrade-guides.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "README.zh.md"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "js-yaml": "4.3.2",
+    "mdast-util-from-markdown": "2.0.3",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-gfm": "3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3"
+  }
+}

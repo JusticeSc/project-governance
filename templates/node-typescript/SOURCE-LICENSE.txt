@@ -1,0 +1,63 @@
+Source provenance and license
+================================
+
+This repository is a modified subset of DeepSeek Harness:
+
+  Source:  https://github.com/deepseek-ai/deepseek-harness
+  License: MIT, Copyright (c) 2026 DeepSeek
+  Copy:    working-tree snapshot taken on 2026-11-01
+
+The distributed subset is limited to the plugin market index generator
+(apps/plugin-market-generator), its format-1 validator
+(packages/util/plugin-market-index), and the Node/TypeScript workspace tooling,
+documentation, and agent workflow retained around them. Unrelated product
+applications, packages, documentation, vendored frameworks, SDKs, native code,
+benchmarks, and product assets are not part of this subset.
+
+Changes made in this copy:
+
+  - Removed the unrelated product workspaces and their documentation.
+  - Moved the LocalizedText type from the removed package-manifest package into
+    packages/util/plugin-market-index/src/types.ts, which is now its only
+    definition.
+  - Adapted the root workspace manifests, TypeScript and lint configuration,
+    build and gate scripts, and Git hooks to the two retained workspaces.
+  - Rewrote the retained user and developer documentation around the generator
+    and validator; the plugin market index format Agent Note is retained as the
+    format contract. This file owns the copied material's source provenance.
+  - Retained the agent workflows, documentation standards, test policy, and
+    review guidance that are not specific to the removed product behavior.
+  - Made workspace discovery, aliases, shared version and license checks
+    independent of the example's names; separated reviewed project policy
+    from gate implementations and placed business artifact tests with owners.
+  - Added direct new-project and complete example-replacement instructions.
+  - Added verify-package-export-keys as a supplemental template checker for
+    the source's reviewed export-key rule, not as a copied source executor.
+    The policy manifest records keys, owners, and reasons; rule changes and
+    domain-owner confirmation remain review responsibilities.
+
+No additional copyright is claimed for this copy. The copied and modified
+material is distributed under the same MIT terms as the source, reproduced
+below. Third-party dependencies remain under their own licenses.
+
+MIT License
+
+Copyright (c) 2026 DeepSeek
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

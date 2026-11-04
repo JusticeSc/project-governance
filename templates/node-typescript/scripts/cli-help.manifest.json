@@ -1,0 +1,16 @@
+{
+  "slug": "cli-help",
+  "english": "docs/cli-help.md",
+  "chinese": "docs/cli-help.zh.md",
+  "commands": [
+    {
+      "id": "plugin-market-generator",
+      "script": "apps/plugin-market-generator/src/bin.ts",
+      "args": [
+        "--help"
+      ],
+      "display": "pnpm run start -- --help",
+      "reason": "The root start script launches this process entry; its help text is the user-facing command contract."
+    }
+  ]
+}

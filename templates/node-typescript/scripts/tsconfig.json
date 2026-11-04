@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.node.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false,
+    "tsBuildInfoFile": "../.scripts.tsbuildinfo"
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "fixtures/**"
+  ]
+}

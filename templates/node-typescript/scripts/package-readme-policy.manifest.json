@@ -1,0 +1,21 @@
+{
+  "allowedKinds": [
+    "package-group",
+    "package-library",
+    "package-reference",
+    "package-bundle"
+  ],
+  "groupKind": "package-group",
+  "defaultPackageKind": "package-reference",
+  "packageKinds": {
+    "packages/util/plugin-market-index": {
+      "kind": "package-library",
+      "reason": "The manifest exposes no bin and the entry is a plain module API, so it is a library rather than a reference or composition bundle."
+    }
+  },
+  "noLimitations": {},
+  "noModelExperience": {
+    "packages/util/plugin-market-index": "Pure index parsing and install-target construction; the application or tool consuming the returned values owns all model-visible rendering."
+  },
+  "sentenceModelExperience": {}
+}

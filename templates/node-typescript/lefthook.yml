@@ -1,0 +1,27 @@
+# Explicit installation only: pnpm run hooks:install.
+# Validation does not fix/restage partially staged files.
+pre-commit:
+  jobs:
+    - name: translation pairing (index)
+      run: node_modules/.bin/tsx scripts/verify-translation-pairing.ts --cached --staged
+    - name: archived agent notes
+      glob: '.agents/notes/archived/**'
+      run: node_modules/.bin/tsx scripts/verify-archived-agent-notes.ts
+    - name: lint (staged)
+      glob: '*.{ts,tsx,mts,cts}'
+      run: node_modules/.bin/tsx scripts/run-oxlint.ts --config .oxlintrc.staged.json --no-error-on-unmatched-pattern {staged_files}
+    - name: whitespace (index)
+      run: git diff --cached --check
+pre-merge-commit:
+  jobs:
+    - name: translation pairing (index)
+      run: node_modules/.bin/tsx scripts/verify-translation-pairing.ts --cached --staged
+    - name: archived agent notes
+      glob: '.agents/notes/archived/**'
+      run: node_modules/.bin/tsx scripts/verify-archived-agent-notes.ts
+    - name: whitespace (index)
+      run: git diff --cached --check
+pre-push:
+  jobs:
+    - name: typecheck
+      run: pnpm run typecheck

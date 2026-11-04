@@ -1,0 +1,16 @@
+{
+  "roles": [
+    "product",
+    "development-only",
+    "test-support"
+  ],
+  "entries": [
+    "apps/plugin-market-generator"
+  ],
+  "packages": {
+    "packages/util/plugin-market-index": {
+      "role": "product",
+      "reason": "The generator imports the validator and install-target builder; both ship in the same workspace product and the entry reaches the package through runtime dependencies."
+    }
+  }
+}

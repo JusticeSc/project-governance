@@ -1,0 +1,19 @@
+{
+  "name": "@project-governance/distribution",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Select the Skill's distributable files from the root files allowlist and install them into a repository seat.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "node --test"
+  }
+}

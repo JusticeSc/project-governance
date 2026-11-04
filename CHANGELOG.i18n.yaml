@@ -1,0 +1,19 @@
+# Bilingual-pair consistency record for CHANGELOG.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write CHANGELOG.md
+/changelog:
+  en: c3a676a1a963e02b
+  zh: d127776fcfeabf8c
+/changelog/0-1-0:
+  en: 459d14ca812bdb09
+  zh: 459d14ca812bdb09
+/changelog/0-1-0/added:
+  en: 8cf2c6fae4e0de39
+  zh: 2bc44ad38472ca39
+/changelog/0-1-0/fixed:
+  en: abc292c45851757a
+  zh: d6b1c922bb368cd0
+/changelog/0-1-0/boundaries:
+  en: 4e0639f14f89913e
+  zh: 4263e8a679bf79fa

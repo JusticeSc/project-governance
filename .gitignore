@@ -1,0 +1,6 @@
+node_modules/
+*.tgz
+.tmp/
+coverage/
+templates/node-typescript/**/lib/
+templates/node-typescript/**/.cache/

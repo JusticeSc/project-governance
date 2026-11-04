@@ -1,0 +1,15 @@
+packages:
+  - packages/*/*
+  - apps/*
+
+peerDependencyRules:
+  allowedVersions:
+    typescript: '>=5 <7'
+
+# Dependency lifecycle scripts remain deny-by-default.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+
+minimumReleaseAgeExclude:
+  - pnpm@11.28.5

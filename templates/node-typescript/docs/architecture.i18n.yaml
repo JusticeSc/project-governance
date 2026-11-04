@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for architecture.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/architecture.md
+/architecture:
+  en: 9c35d7c463d16c0f
+  zh: 36fc9fbebd7df918
+/architecture/workspaces:
+  en: 9877a61817c58dd0
+  zh: 120773b45aa29abd
+/architecture/data-flow:
+  en: 6703114f984a4304
+  zh: 0664865d0938ef1e
+/architecture/format-ownership:
+  en: f24ec2a91910599a
+  zh: 404254ddd1e30924
+/architecture/module-map:
+  en: d3aa337446251155
+  zh: a89d9f4d3f1e1de4
+/architecture/source-plane-and-artifact-plane:
+  en: 5a676ed716e9f49b
+  zh: 1b860444bdfba0fd
+/architecture/where-new-behavior-goes:
+  en: ace2f603b352bed5
+  zh: defd6b29061615c5
+/architecture/boundaries-this-repository-does-not-have:
+  en: ba201085f913b1eb
+  zh: d64ba2dbec575777

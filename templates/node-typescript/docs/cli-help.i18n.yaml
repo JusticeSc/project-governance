@@ -1,0 +1,13 @@
+# Bilingual-pair consistency record for cli-help.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/cli-help.md
+/cli-help-reference:
+  en: 106e90da625e4cfb
+  zh: 63c4149719f59dc8
+/cli-help-reference/generator-help:
+  en: e4c00209f15754c7
+  zh: 0845c22f247993dd
+/cli-help-reference/updating-help:
+  en: d9fbf215977bcb18
+  zh: 20ae90ed695a4945

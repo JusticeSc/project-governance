@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for README.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write packages/README.md
+/:
+  en: e1322ab576c5d9c1
+  zh: 854ba14d42112bda
+/capability-families:
+  en: 3ecb71bfd005e145
+  zh: 74c31c836f445020
+/capability-families/summary:
+  en: 97caf416c64baa29
+  zh: 12f6c270bf2a01f5
+/capability-families/families:
+  en: a578785a51326b40
+  zh: cb172c34ed06fd34

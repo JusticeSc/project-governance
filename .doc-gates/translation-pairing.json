@@ -1,0 +1,15 @@
+{
+  "roots": [
+    "docs",
+    "apps",
+    "packages"
+  ],
+  "files": [
+    "README.md",
+    "README.zh.md",
+    "README.i18n.yaml",
+    "CHANGELOG.md",
+    "CHANGELOG.zh.md",
+    "CHANGELOG.i18n.yaml"
+  ]
+}

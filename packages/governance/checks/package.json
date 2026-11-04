@@ -1,0 +1,19 @@
+{
+  "name": "@project-governance/checks",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Run only the checks a repository configured for itself, after validating the whole policy.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "node --test"
+  }
+}

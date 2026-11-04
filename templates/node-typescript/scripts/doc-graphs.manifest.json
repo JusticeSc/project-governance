@@ -1,0 +1,18 @@
+{
+  "outputs": [
+    {
+      "slug": "package-relationships",
+      "english": "docs/package-relationships.md",
+      "chinese": "docs/package-relationships.zh.md",
+      "reason": "The workspace runtime dependency graph is enumerable from the member manifests; the generated region keeps the diagram from duplicating that fact by hand.",
+      "scope": [
+        "packages",
+        "apps"
+      ],
+      "edges": [
+        "dependencies",
+        "optionalDependencies"
+      ]
+    }
+  ]
+}

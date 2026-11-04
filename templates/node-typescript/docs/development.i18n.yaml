@@ -1,0 +1,61 @@
+# Bilingual-pair consistency record for development.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/development.md
+/development-guide:
+  en: 9582d6bcd7912290
+  zh: 0082ba390185d659
+/development-guide/setup-tutorial:
+  en: 5207d17725c07a27
+  zh: 8ae77f4801a429a4
+/development-guide/setup-tutorial/prerequisites:
+  en: 56d601db6699c9de
+  zh: de3143d0355faab9
+/development-guide/setup-tutorial/bootstrap-a-new-export:
+  en: cab849bc5d614bb0
+  zh: 972511889d6691ab
+/development-guide/setup-tutorial/first-time-setup:
+  en: f0cd5435878a621d
+  zh: 5d1f1646fac4b27f
+/development-guide/setup-tutorial/daily-workflow:
+  en: 8d66e431eb68bd57
+  zh: 04b4fae86b27939c
+/development-guide/contributor-reference:
+  en: 3221d1076554001f
+  zh: c84462aaf62749f0
+/development-guide/contributor-reference/repository-layout:
+  en: a07467834cb5e9b8
+  zh: 7cac5195ec157cc5
+/development-guide/contributor-reference/typescript-project-layout:
+  en: be6289917f475ec7
+  zh: 55164802d8a71d62
+/development-guide/contributor-reference/source-plane-and-packed-artifact-plane:
+  en: 4b11f5cc94620d69
+  zh: cb3e351b6957a886
+/development-guide/contributor-reference/verify-a-change:
+  en: 7a11d283ebab3959
+  zh: d4ea67c66aa43a49
+/development-guide/contributor-reference/git-integrations:
+  en: 14f1d94c7f07a281
+  zh: cd3c7c158deea300
+/development-guide/contributor-reference/ci-gates:
+  en: 2bafc4141d2f1c8f
+  zh: 65c36184792807d4
+/development-guide/contributor-reference/generator-commands-and-side-effects:
+  en: 50ee65181c004fd0
+  zh: a77b959060b91a1b
+/development-guide/contributor-reference/environment-variables:
+  en: 08132e494bf69201
+  zh: e3f75698d65cdc0b
+/development-guide/contributor-reference/todo-markers:
+  en: 945e51a6c022cdee
+  zh: dad107f0913acd64
+/development-guide/contributor-reference/documenting-source-contracts:
+  en: ba13665212998150
+  zh: 647eefdd4badda9c
+/development-guide/contributor-reference/replacing-maintained-code-with-a-dependency:
+  en: b69d2c179884abc9
+  zh: 32788cdf6e607eb6
+/development-guide/contributor-reference/package-boundary-verification:
+  en: 7cd3c813d8811de1
+  zh: 65068b34fb1c7bb4

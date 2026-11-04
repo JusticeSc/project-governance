@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for testing.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/testing.md
+/testing-policy:
+  en: 5b1902d4bbdd90a5
+  zh: a32340ef8373a050
+/testing-policy/tiers:
+  en: ce4fe7c34b1dfa7e
+  zh: 8c80beed1506e131
+/testing-policy/how-specs-execute:
+  en: 411fa88da4533f72
+  zh: a8bb21b08d8ac15d
+/testing-policy/prefer-the-real-implementation-over-a-mock:
+  en: ea3db5448ef9ca5d
+  zh: 56d9460688de6cfd
+/testing-policy/verify-the-world-not-the-self-report:
+  en: 37307d73fc04498d
+  zh: ad5063657c6e558b
+/testing-policy/test-the-real-entry-path:
+  en: d7559c448812e4e4
+  zh: 4406b9778be73297
+/testing-policy/test-resolution-source-plane-only:
+  en: 00e407fc3b08a114
+  zh: 3ca02785ebabe36a
+/testing-policy/subprocess-launch-modes:
+  en: 3b4cb7e5f0532277
+  zh: f4360bc6b9ec3027
+/testing-policy/documentation-compilation:
+  en: 1d460f4db631bf63
+  zh: cb215fe68ac7b280
+/testing-policy/repository-reference-checks:
+  en: dede050160d76ec3
+  zh: 80f813f5bb660383
+/testing-policy/workspace-export-keys:
+  en: 4491646d8646135a
+  zh: 86e24ea9a06ee189
+/testing-policy/coverage-and-exclusions:
+  en: cbbdbfb3b29cc7c8
+  zh: 9f442dfef06f88cc
+/testing-policy/conditional-evidence:
+  en: f65d9a382ddcce0f
+  zh: 09d20baa5faef966

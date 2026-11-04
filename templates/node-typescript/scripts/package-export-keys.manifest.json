@@ -1,0 +1,7 @@
+{
+  "standardExports": [
+    ".",
+    "./package.json"
+  ],
+  "additions": {}
+}

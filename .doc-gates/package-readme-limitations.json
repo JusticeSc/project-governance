@@ -1,0 +1,6 @@
+{
+  "packagesRoot": "packages",
+  "manifest": "package.json",
+  "readme": "README.md",
+  "exemptions": {}
+}

@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for testing.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/testing.md
+/testing-and-evidence:
+  en: 6cfa01ff365324dd
+  zh: d4cb8d968a6c606e
+/testing-and-evidence/package-regressions:
+  en: fee56b725f45acc3
+  zh: 306615fab77769ef
+/testing-and-evidence/actual-product-smoke:
+  en: f1272d793146822b
+  zh: e0a47a180e380d53
+/testing-and-evidence/self-check-corpus:
+  en: aa98fe36770facd2
+  zh: b055add05109692f
+/testing-and-evidence/template-verification:
+  en: 10416bee131866e3
+  zh: 91c5bf71a138b341
+/testing-and-evidence/ci-and-unverified-layers:
+  en: 644e4ec66a9a3e53
+  zh: 3ea3374385e10463

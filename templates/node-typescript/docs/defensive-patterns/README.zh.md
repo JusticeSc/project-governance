@@ -1,0 +1,24 @@
+# 防御性模式
+
+[English](README.md) | 中文
+
+来之不易的规则：本目录中的每个模式都是本仓库在审查中执行的义务，按“规则 + 它防止的缺陷”陈述。每条规则都说明必须成立什么、审查者据何判断、边界在哪里，以及正确与错误示例。修改之前，先阅读你要改动领域的页面。
+
+## 为什么有这些规则
+
+五种习惯覆盖了以下大部分内容，每个页面都是它们在一个领域的应用：
+
+- **把正确性写明确。** 写进结构——命名调用点、显式生命周期、显式条件与类型——而不是事后用时序补偿。
+- **保持唯一事实来源。** 一份数据一条读取路径，一个事实一个归属，共享状态一个 owner。
+- **让变更面等于审查面。** 变更只携带其声明行为所需的行；迁移搬动代码，而不是重写代码。
+- **要求证据。** 声明可证伪、可复算——前后测量，或由会在缺陷上失败的测试检查——而不是靠手工同步。
+- **为完整结果设限。** 在完整的输出或保留值（包括包装与元数据）已知处执行字节、数量与时间上限。
+
+| 修改 | 阅读 |
+|---|---|
+| 生成、抓取、缓存、输出写入、错误处理、时序、配置、子进程、teardown | [general.md](general.zh.md) |
+| 包导出、包形态、构建面、依赖声明 | [packages/AGENTS.md](../../packages/AGENTS.md) 与[开发指南](../development.zh.md#typescript-project-layout) |
+| 索引格式及其校验器类型 | [格式 Agent Note](../../.agents/notes/implemented/feature/2026-10-02-plugin-market-index-format.zh.md) 与[包 README](../../packages/util/plugin-market-index/README.zh.md) |
+| UI 身份、共享控件、样式、远程合同、恢复、派生 projection 或显示资源 | [conditional-domains.md](conditional-domains.zh.md)；仅激活实际对象对应的规则 |
+
+[dsh-code-review](../../.agents/skills/dsh-code-review/SKILL.md) 在审查 pull request 时阅读本目录，根 [AGENTS.md](../../AGENTS.md) 将变更路由到这里。

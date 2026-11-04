@@ -1,0 +1,67 @@
+# Bilingual-pair consistency record for README.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write packages/governance/documentation/README.md
+/project-governance-documentation:
+  en: a2494f9bcb530721
+  zh: 98f7364a701570ff
+/project-governance-documentation/summary:
+  en: 9b05bffb07b17a7b
+  zh: ef3fb06e08d68939
+/project-governance-documentation/scope-of-the-package:
+  en: 35ed7661ae7897ca
+  zh: bd1f0270d0e1cd64
+/project-governance-documentation/prerequisites:
+  en: 55cf6a66e593e515
+  zh: 766798d3f714857b
+/project-governance-documentation/commands:
+  en: da1f12c1e5489fff
+  zh: 36fd5878fa0378ea
+/project-governance-documentation/commands/markdown-links-verify-md-links:
+  en: 91c4776d0d9795ca
+  zh: abbae30bf7d411b5
+/project-governance-documentation/commands/paragraph-wrapping-verify-md-wrap:
+  en: 94b7e9e828fe9ff4
+  zh: 2e862d516597bc18
+/project-governance-documentation/commands/standing-budgets-verify-doc-budgets:
+  en: 71aa376d1e968f8a
+  zh: a0ac3e9790523e88
+/project-governance-documentation/commands/bilingual-pairing-verify-translation-pairing:
+  en: 78d7cfccb46599df
+  zh: f985feefbd9b54a4
+/project-governance-documentation/commands/repository-references-verify-repository-references:
+  en: c0ef29186e411e55
+  zh: 1001457e1875fbce
+/project-governance-documentation/commands/subsystem-pages-verify-subsystem-pages:
+  en: d604d3ee110291e3
+  zh: 6f54e16e3320becf
+/project-governance-documentation/commands/package-readme-summaries-verify-package-readme-summaries:
+  en: 046f286b83a412b0
+  zh: d249afeef88dde28
+/project-governance-documentation/commands/package-readme-caveats-contract:
+  en: ff187e2091f727bf
+  zh: 88f56a99e4491898
+/project-governance-documentation/commands/documented-compilation-doc-typecheck:
+  en: a7281ed147231272
+  zh: ab9faa22fc74894d
+/project-governance-documentation/commands/type-equivalence-verify-type-equiv:
+  en: 29cc520b00f3a8a4
+  zh: b291880eff622edc
+/project-governance-documentation/commands/upgrade-guides-verify-upgrade-guides:
+  en: 6f0117a59238b066
+  zh: 1744af7558e1d6a2
+/project-governance-documentation/behaviour-that-is-easy-to-misread:
+  en: 4a7ce8ff49c5e48f
+  zh: 3c7b0f5c2017aa70
+/project-governance-documentation/exit-codes:
+  en: 26ccb0e953f45728
+  zh: c2e13f10e032f059
+/project-governance-documentation/running-and-verifying:
+  en: 2dc8f4681850a84b
+  zh: afb0526d578237b4
+/project-governance-documentation/rule-owners:
+  en: dfcb38b640878dea
+  zh: 3b87da44021f272f
+/project-governance-documentation/known-limitations-and-deferred-work:
+  en: e566bc00c4fe3220
+  zh: ebb0a1173c746c4f

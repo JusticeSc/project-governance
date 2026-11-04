@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.node.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rewriteRelativeImportExtensions": false
+  },
+  "include": [
+    "apps/*/tests/**/*.ts",
+    "packages/*/*/tests/**/*.ts",
+    "scripts/**/*.ts",
+    "*.config.ts",
+    "vitest.shared.ts"
+  ],
+  "exclude": [
+    "scripts/fixtures/**"
+  ],
+  "references": [
+    {
+      "path": "./packages/util/plugin-market-index"
+    },
+    {
+      "path": "./apps/plugin-market-generator"
+    }
+  ]
+}

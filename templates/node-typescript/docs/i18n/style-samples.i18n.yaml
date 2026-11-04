@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for style-samples.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/i18n/style-samples.md
+/translation-style-samples:
+  en: 5fc8b23d44faa65f
+  zh: 5644a6b518063c1b
+/translation-style-samples/defensive-rule:
+  en: 11cdce055f9bd741
+  zh: 7fa222e02b62e3d2
+/translation-style-samples/policy-statement:
+  en: 5f1c9f3f11a24591
+  zh: be5e4fd177192ddc
+/translation-style-samples/decision-rationale:
+  en: 13c3f29cbff72973
+  zh: e0b1fe5e9f141620

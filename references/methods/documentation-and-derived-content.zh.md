@@ -1,0 +1,15 @@
+<a id="baseline-docs"></a>
+# 文档与派生内容：写当前事实，修唯一真源（5.01–5.08）
+
+
+本节是综合方法的一页：解释当前事实、唯一真源与生成内容这一变更面；逐项来源与覆盖见[来源与覆盖](sources-and-coverage.zh.md)。
+
+**一、用法变化必须同步文档，文档只写当前成立的事实。** 受影响的 README、JSDoc 与 CLI help 要与当前行为一致；受检查的文档代码示例要能通过目标编译器，否则示例会把读者直接带到错误路径。逐字类型声明与公共 API 投影片段另受类型等价门禁及清单一一对应约束，可编译不等于与源声明、JSDoc 一致。写作时按文档职责与篇幅预算组织，注释写行为、失败、时序、所有权、例外与责任，不写逐步实现叙述、测试走查或历史评审结论，也不重复代码或用含糊术语；“因为上次 review 建议，所以这里……”应改成当前成立的具体条件。每处事实只留一个家：当前行为归所属文档，类型归子系统页，操作步骤归 cookbook，长期理由归 Agent Note。作者负责迁移内容与修入链，文档与注释变化先经 `doc-sync` 及 README/CLI help 相关检查，再由评审判断行为事实是否正确；预算、换行、术语与编译检查只能证明形式与可编译性（5.01、5.04）。
+
+**二、生成内容与链接必须从真源可用，不能手工维护第二份事实。** 工具、配置、客户端、Cordis、依赖、插件、持久化、workflow guest、模块与文档图谱等生成内容要由代码、清单或运行时 schema 生成，并在来源或生成器变化后重新生成、由新鲜度门禁检查；删除能力后，旧参数说明不能继续留在目录里。生成器 owner 还要保证它读的是源码而不是相邻文档。链接侧要求受检语料的本地目标、公开引用与站点片段有效，Mermaid 与文档站构建通过，站点交互测试通过；移动章节后旧锚点仍被引用会让导航失效。Markdown 中写源相对链接，不写 `/docs/...` 之类站内绝对路由，网站投影负责转换。自动检查只覆盖其声明语料，标题改名与语料外链接仍要作者与评审处理（5.02、5.03）。
+
+**三、用户可见文案由 locale 拥有，双语内容成对更新。** 产品文案要经 typed dictionary、`t` 或本地化 primitive props 取得；硬编码英文会让其他语言界面混杂，也无法由翻译维护者统一更新。源检查拒绝 JSX、模板、helper 返回值、可访问性属性与 primitive 默认值中的自然语言文案，并对 locale owner 文件豁免；插件语言元数据与安装器 locales 各由自己的检查负责。双语文档要按配对规则更新两侧并重录一致性记录，只改一侧会让两组读者得到不同操作方法；术语按绑定表处理，翻译提示词的占位符、方向与调用元数据满足各自检查。普通双语修改不自动触发扩展翻译 Skill：源 `dsh-translate-docs` 只在用户明确点名调用时运行。绿配对哈希证明结构与记录一致，不证明译文含义正确，语义仍由翻译或领域评审负责（5.05、5.06）。
+
+**四、Agent Note 只保留有后续决策价值的理由，资源元数据要真的随包发布。** 只有代码、测试和现有文档解释不了的持久决策理由才写 Note；机械或局部改动（包括局部 UI 表现）豁免。被取代的 active Note 要处理，冻结归档不再编辑；新记录要有正确分类与格式，但“是否值得长期保留”由作者与评审判断，格式/分类/归档检查不能代替。图标等资源要能被包 exports 与发布文件选中：源码里能显示图标，不代表安装包带上了它，用户安装后就会缺图。官方 artwork 要遵守现有视觉语言与资源导出规则，新 glyph 在落地前取得设计者批准；`verify-package-meta`、包 payload 与目录生成检查证明结构，不能证明视觉含义或辨识度（5.07、5.08）。
+
+证据与链接：[可编译示例与类型等价](../documentation-package-and-api.md#code-equivalence)、[生成参考](../documentation-generated-content.md#generated-references)、[Markdown 链接与锚点](../documentation-links-and-repository-policy.md#markdown-gates)、[散文、预算与当前状态](../documentation-structure-and-prose.md#prose-budgets)、locale owner 检查（该细则的源页未随本产品迁移）、[双语配对](../documentation-localization.md#i18n-pairing)、[Agent Note 生命周期](../documentation-record-lifecycle.md#agent-notes)、[包 manifest 与发布文件](../supply-chain-package-and-installation.md#sc-manifest-publication)。第一方源：`deepseek-harness/docs/AGENTS.md:5-47,49-77`、`deepseek-harness/AGENTS.md:155-157,171-177`、`deepseek-harness/.agents/notes/README.md:47-75`、`deepseek-harness/docs/i18n/README.md:3-17`、`deepseek-harness/.agents/skills/dsh-official-plugin-artwork/SKILL.md:31-41`、`deepseek-harness/scripts/verify-client-ui-i18n.ts:1-361`；公开源 [documentation standard](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/docs/AGENTS.md#L5-L77)、[root writing rules](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/AGENTS.md#L171-L177)、[artwork verification](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/.agents/skills/dsh-official-plugin-artwork/SKILL.md#L31-L41)。边界：预算数值、100 词 Summary 上限、locale 文件命名与 450 文件下限是源参数；目标要按自身文档树、语言集合与工具链设定语料和阈值。站点、Mermaid 与插件元数据只在目标存在对应发布面时适用；缺工具或未接入 CI 记为触发但阻塞，不记为不适用。

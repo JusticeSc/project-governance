@@ -1,0 +1,22 @@
+# Bilingual-pair consistency record for starting-a-project.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/cookbook/starting-a-project.md
+/cookbook-start-a-different-project:
+  en: 9ef7e60afc04e2ad
+  zh: 57f015faf45b032d
+/cookbook-start-a-different-project/1-establish-the-checkout:
+  en: db049d53bfa61fc9
+  zh: 65592feebc4ec016
+/cookbook-start-a-different-project/2-define-the-business-and-its-owners:
+  en: 3e3ad8bed75fff86
+  zh: e49a4c7124248663
+/cookbook-start-a-different-project/3-set-project-parameters:
+  en: 7386ad9506a74795
+  zh: 6842edbe07148a34
+/cookbook-start-a-different-project/4-verify-real-behavior-and-delivery:
+  en: 16e39bb616c4896a
+  zh: 4c3080949fed6bd2
+/cookbook-start-a-different-project/5-continue-from-the-project-s-own-materials:
+  en: d59ece2fede7ad77
+  zh: c9edb0805f6006ad

@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for provenance.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/provenance.md
+/source-and-attribution:
+  en: d036288d4a1fcad6
+  zh: fea248435b709f87
+/source-and-attribution/normative-origin:
+  en: 2e403debdf2036b6
+  zh: fe1eba5698710cf6
+/source-and-attribution/extraction-boundary:
+  en: 88bfa2fde19f9957
+  zh: 8ef9d0ecbe73b5b0
+/source-and-attribution/licence-and-proof:
+  en: a5e53844630884d0
+  zh: 7c55feb69f8e175f

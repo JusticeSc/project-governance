@@ -1,0 +1,10 @@
+# Bilingual-pair consistency record for testing-conditional.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/testing-conditional.md
+/conditional-testing-evidence:
+  en: 7c141ba10be9d20b
+  zh: 4119ec48a6d61a37
+/conditional-testing-evidence/conditional-evidence:
+  en: 79497514e9728991
+  zh: f288ffc6dea6c6e5

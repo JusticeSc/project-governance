@@ -1,0 +1,23 @@
+{
+  "name": "@project-governance/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Command entry for the project-governance Skill: run a repository's configured checks and install the Skill.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "bin": {
+    "project-governance": "bin/governance.mjs"
+  },
+  "files": [
+    "bin/"
+  ],
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@project-governance/checks": "*",
+    "@project-governance/distribution": "*"
+  }
+}

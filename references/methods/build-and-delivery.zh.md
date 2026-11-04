@@ -1,0 +1,15 @@
+<a id="baseline-delivery"></a>
+# 交付物与平台证据：从消费者和真实产物验证（6.01–6.08）
+
+
+本节是综合方法的一页：解释源码／产物分离、安装消费与发布证据这一变更面；逐项来源与覆盖见[来源与覆盖](sources-and-coverage.zh.md)。
+
+**一、源码面与产物面要分开，包消费者视角不能由仓库路径映射代替。** 静态门禁与源码测试经 tsconfig paths 解析 `src`；任何读取 `lib` 的检查必须明确依赖构建完成，不能因为工作区残留旧声明或 bundle 而在本机变绿、在干净检出后失败。发布布局的验证要从包消费者出发：`publint` 与 NodeNext consumer 检查包 `exports`、类型声明与文件布局是否对应实际发布内容。仓库内路径映射可能绕过真实 package exports，从源码成功导入也不能说明安装后的消费者能解析；修改 manifest、导出入口、声明文件或构建配置时，这三类证据都要按触发面选择（6.01、6.02）。
+
+**二、关键进程要从构建产物实际启动，发布前要安装真正生成的 tarball。** CLI、worker、SDK server、子进程等 built smoke 要用 `lib` 或实际入口启动，不能只导入源码；错误文件路径、ESM/CJS 差异与漏打包 worker 往往只在启动时以 ENOENT 或解析错误暴露。发布版本存在时，版本校验、pack 与 packed install 要通过，依赖布局符合安装政策；对应发布工作流触发时按同一组检查验证，本地修改发布布局也做相关验证。workspace 能通过软链接找到源码，用户只能拿到压缩包内文件与声明的依赖，README 引用却留在源码树的配置模板不会随包安装。该类验证只在目标确实发布包或可执行产物时适用（6.03、6.04）。
+
+**三、平台结果要区分必需检查与观察性诊断，性能变化要用测量判断。** 目标 Node 与操作系统的 required jobs 必须成功；观察性诊断只报告，不得与必需检查等同。源的 Windows `build & observational` job 同时包含阻塞的构建/站点步骤与 `continue-on-error` 的观察步骤，因此不能因名称含 “observational” 就把整个 job 降为观察；聚合 `all checks passed` 的 `needs` 会拒绝 `failure`、`cancelled` 与 `skipped`。反过来，未被该聚合列出的 job（如源 Windows coverage lane）也不能仅凭“不在 needs 中”判定为可选或必需，必须核对平台 required checks。性能声称要有可复算的前后数据，在相同负载下测量；功能测试不会因为耗时从一秒变十秒而失败。基准阈值与 “独立空闲 runner” 是源参数，按目标风险选择基准、内存或 Web 压力测量（6.05、6.06）。
+
+**四、打包后的安全与系统能力仍要执行，依赖与发布材料要可重复核对。** 沙箱隔离要在真实内核下达到预期，并在 `pack → install → confine` 后仍成立；native、桌面、SSH helper 等按各自产物流程验证。限制策略或 native 文件可能在打包后丢失，源码环境的安全测试不能替代安装形态测试。依赖安装要用 frozen lockfile，包许可证与第三方声明要准确，发布版本与适用的桌面签名要求要通过验证；不能靠自动改 lockfile “修好”缺少依赖的 CI，应提交一致的依赖变更。签名与桌面发布只在目标分发对应产物时适用（6.07、6.08）。
+
+证据与链接：[源平面与构建平面](../testing-evidence-and-reliability.md#m15-source-built)、[ESM 与发布 payload](../supply-chain-package-and-installation.md#sc-esm-payload)、[真实入口组合](../testing-evidence-and-reliability.md#m14-real-entry)、[npm 打包预演](../release.md#npm-rehearsal)、[CI 编排与平台覆盖](../testing-platform-and-performance.md#m37-ci)、[基准门禁](../testing-platform-and-performance.md#m31-benchmark-gate)、[e2e 凭据与网络隔离](../testing-real-api-and-secrets.md#m11-e2e-isolation)、[许可证与第三方声明](../supply-chain-vendor-and-licenses.md#sc-licenses-notices)。第一方源：`deepseek-harness/docs/testing.md:37-51`、`deepseek-harness/AGENTS.md:95-98`、`deepseek-harness/package.json:203-205`、`deepseek-harness/.github/workflows/ci.yml:529-600,735-763`、`deepseek-harness/.github/workflows/sandbox.yml:100-133`、`deepseek-harness/scripts/verify-dsh-package-licenses.ts:1-89`；公开源 [real entry path](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/docs/testing.md#L37-L51)、[Windows lane](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/.github/workflows/ci.yml#L529-L600)、[required aggregation](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/.github/workflows/ci.yml#L735-L763)、[packed sandbox e2e](https://github.com/deepseek-ai/deepseek-harness/blob/687f282e8625c6b8d11ff58211a90524be2e4317/.github/workflows/sandbox.yml#L100-L133)。边界：发布、打包与签名按目标产物触发，平台矩阵按支持范围及 CI 设定；缺少 CI 不豁免适用的发布验证。文件中的 job 结构不能证明线上 branch rules，required check 的实际配置须查平台。命令定义与脚本源码不能证明本次已执行。

@@ -1,0 +1,40 @@
+# Bilingual-pair consistency record for general.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/defensive-patterns/general.md
+/defensive-patterns:
+  en: 676546d2e2378b13
+  zh: 28f95ebcf39164f5
+/defensive-patterns/report-orthogonal-outcomes-independently:
+  en: 1005abc762f16c48
+  zh: 790dbb46181bf621
+/defensive-patterns/timing-does-not-carry-correctness:
+  en: b1b25d75aadecb8e
+  zh: 4bc3bf0c910da5d1
+/defensive-patterns/optional-inputs-state-both-behaviors:
+  en: 235c715ff9ad9ee4
+  zh: 10fbda49d249c355
+/defensive-patterns/one-value-states-one-fact:
+  en: f75a9658eeb356b6
+  zh: 0060037f06c7e425
+/defensive-patterns/shared-state-has-one-owner:
+  en: 0dc549bfcc478eed
+  zh: 6f5fb3e00f637b9e
+/defensive-patterns/migrations-preserve-behavior:
+  en: 1cf30b01d4cabc2e
+  zh: a3b987758b5235eb
+/defensive-patterns/dispose-must-reach-quiescence-not-just-request-it:
+  en: b1db18efc8281ee3
+  zh: 4e42a26327599926
+/defensive-patterns/contain-callback-exceptions-in-the-dispatcher:
+  en: 7a51d72ca0effec6
+  zh: 64a7c7b9239ef312
+/defensive-patterns/never-hand-untrusted-output-the-ambient-environment-or-predictable-paths:
+  en: c4b657f4f1b0a1c4
+  zh: 6302906551df0cf1
+/defensive-patterns/unlink-link-shaped-paths:
+  en: 35944dc084b41ded
+  zh: b14fcbefa4f57c76
+/defensive-patterns/bound-the-complete-result:
+  en: bb44c41d722d1be9
+  zh: 5a77cf4ed99d5ff9

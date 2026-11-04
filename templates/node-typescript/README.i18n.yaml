@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write README.md
+/node-typescript-governance-template:
+  en: ca33a12d386327e7
+  zh: 098c7b1f59121435
+/node-typescript-governance-template/start-a-project:
+  en: 7734d7071b8fb5c7
+  zh: b8cc5369f28225ef
+/node-typescript-governance-template/status:
+  en: 1491782ad3ff2a0a
+  zh: 2dbe3e96b0e56a85
+/node-typescript-governance-template/requirements:
+  en: a8da802b224ef43d
+  zh: c568219432808fc0
+/node-typescript-governance-template/install:
+  en: ed5f465ed1d3f2e2
+  zh: 02c003480143908a
+/node-typescript-governance-template/generate-an-index:
+  en: 3d029d386913259a
+  zh: 833bfa70ffab04af
+/node-typescript-governance-template/build-and-run-the-built-app:
+  en: 726384d713827e49
+  zh: 4267710e8815a7f0
+/node-typescript-governance-template/commands:
+  en: dbb0a74a696743c7
+  zh: 82ea209be220325c
+/node-typescript-governance-template/documentation:
+  en: 5ff5c07c322b79ad
+  zh: 6df83bc11ef164b6
+/node-typescript-governance-template/license:
+  en: 57eae5c6752a0c4e
+  zh: acfbd5e37f4279c3

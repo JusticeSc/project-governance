@@ -1,0 +1,9 @@
+{
+  "checks": {
+    "syntax": "npm run check:syntax",
+    "structure": "npm run check:structure",
+    "tests": "npm test",
+    "documentation": "npm run check:docs",
+    "template": "npm run check:template"
+  }
+}

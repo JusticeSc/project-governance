@@ -1,0 +1,22 @@
+{
+  "name": "@project-governance/review-maintenance",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Periodic maintenance of this Skill: collect human review feedback, classify it against the current guidance with two independent adapters, draft and gate a candidate, and require dual review before leaving a reviewed diff.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "bin": {
+    "review-maintenance": "./src/cli.mjs"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,13 @@
+# Bilingual-pair consistency record for package-relationships.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write docs/package-relationships.md
+/package-relationships:
+  en: 3d0ce942fd946c89
+  zh: b25c5fb0aded08f0
+/package-relationships/workspace-graph:
+  en: 3d40ceabb3f4678c
+  zh: 3ad6b6df97e1a398
+/package-relationships/updating-the-projection:
+  en: f9a2fc23268a7132
+  zh: da68740e5850ed05
