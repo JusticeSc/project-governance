@@ -30,7 +30,7 @@ describe('command surface', () => {
       assert.equal(child.status, 0, `${args.join(' ')}\n${child.stdout}\n${child.stderr}`)
       assert.match(child.stdout, /project-governance check \[repository\] \[--policy path\]/)
       assert.match(child.stdout, /project-governance install <existing-repository>/)
-      assert.match(child.stdout, /npm ci --ignore-scripts/)
+      assert.match(child.stdout, /no npm install or network/)
       assert.match(child.stdout, /0 all checks passed/)
       assert.equal(child.stderr, '')
     }
@@ -52,7 +52,7 @@ describe('command surface', () => {
   it('prints help for install --help without installing', () => {
     const child = runCli(['install', '--help'])
     assert.equal(child.status, 0, `${child.stdout}\n${child.stderr}`)
-    assert.match(child.stdout, /npm ci --ignore-scripts/)
+    assert.match(child.stdout, /no npm install or network/)
   })
 
   it('reports exit 2 for a repository without a policy', () => {

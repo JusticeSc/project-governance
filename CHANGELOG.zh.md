@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | 中文
 
+## 0.1.1
+
+### 变更
+
+- project-governance Skill 现为可复制到项目中的独立目录，无需 npm workspace 依赖即可离线安装固定模板；继续保护已有内容并在安装冲突时停止。
+
 ## 0.1.0
 
 ### 新增

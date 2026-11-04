@@ -2,7 +2,7 @@ import { globSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 const root = fileURLToPath(new URL('../', import.meta.url))
-const files = [...new Set(globSync(['apps/*/bin/*.mjs', 'apps/*/tests/**/*.mjs', 'packages/*/*/src/**/*.mjs', 'packages/*/*/tests/**/*.mjs', 'scripts/*.mjs', 'tests/**/*.mjs'], { cwd: root }))].sort()
+const files = [...new Set(globSync(['apps/*/bin/*.mjs', 'apps/*/tests/**/*.mjs', 'packages/*/*/src/**/*.mjs', 'packages/*/*/tests/**/*.mjs', 'scripts/*.mjs', 'skills/*/scripts/**/*.mjs', 'tests/**/*.mjs'], { cwd: root }))].sort()
 if (files.length === 0) throw new Error('No authored JavaScript files discovered')
 for (const file of files) {
   const result = spawnSync(process.execPath, ['--check', file], { cwd: root, stdio: 'inherit' })

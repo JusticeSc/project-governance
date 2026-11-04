@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -30,6 +30,8 @@ try {
   assert(packed.files.some(file => file.path === 'npm-shrinkwrap.json'), 'The distributable lock must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'SOURCE-LICENSE.txt'), 'Source attribution must travel with the product')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/pnpm-lock.yaml'), 'The independent template lock must travel in the actual tarball')
+  assert(packed.files.some(file => file.path === 'skills/project-governance/assets/template.json.gz'), 'The Skill payload must travel in the actual tarball')
+  assert(packed.files.some(file => file.path === 'skills/project-governance/scripts/install-template.mjs'), 'The Skill installer must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/lefthook.yml'), 'The template hook configuration must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/gitignore'), 'The npm-safe ignore source must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/apps/plugin-market-generator/src/cli.ts'), 'Template application source must travel in the actual tarball')
@@ -97,9 +99,10 @@ try {
   run('install Skill from packed product', process.execPath, [packedCli, 'install', target], consumer)
   const seat = join(target, '.agents', 'skills', 'project-governance')
   const skillBefore = readFileSync(join(seat, 'SKILL.md'))
-  run('prepare installed seat', process.execPath, [npm, 'ci', ...npmOptions], seat)
-  run('installed seat accepts its declared package graph', process.execPath, [npm, 'run', 'check:structure'], seat)
-  const boundaryEntry = join(seat, 'apps', 'cli', 'bin', 'governance.mjs')
+  run('Skill refuses conflicting existing project before writing', process.execPath, [join(seat, 'scripts/install-template.mjs'), target], consumer, 1)
+  assert.equal(readFileSync(join(target, 'PROJECT.md'), 'utf8'), state)
+  run('packed product accepts its declared package graph', process.execPath, [npm, 'run', 'check:structure'], packedRoot)
+  const boundaryEntry = join(packedRoot, 'apps', 'cli', 'bin', 'governance.mjs')
   const boundarySource = readFileSync(boundaryEntry)
   const boundaryOffset = boundarySource.toString().startsWith('#!') ? boundarySource.indexOf(10) + 1 : 0
   try {
@@ -108,13 +111,18 @@ try {
       Buffer.from("import { runChecks as privateBoundaryProbe } from '../../../packages/governance/checks/src/index.mjs'\n"),
       boundarySource.subarray(boundaryOffset),
     ]))
-    run('installed seat refuses a real cross-package private import', process.execPath, [npm, 'run', 'check:structure'], seat, 1)
+    run('packed product refuses a real cross-package private import', process.execPath, [npm, 'run', 'check:structure'], packedRoot, 1)
   } finally {
     writeFileSync(boundaryEntry, boundarySource)
   }
-  run('installed seat accepts exact boundary restoration', process.execPath, [npm, 'run', 'check:structure'], seat)
-  const ignoreFixture = join(temporary, 'exported ignore rules')
-  run('installed Skill exports Git ignore rules', process.execPath, [join(seat, 'scripts', 'export-template.mjs'), ignoreFixture], seat)
+  run('packed product accepts exact boundary restoration', process.execPath, [npm, 'run', 'check:structure'], packedRoot)
+  const ignoreFixture = join(temporary, 'installed template and Skill')
+  const copiedSeat = join(ignoreFixture, '.agents/skills/project-governance')
+  mkdirSync(join(ignoreFixture, '.agents/skills'), { recursive: true })
+  cpSync(seat, copiedSeat, { recursive: true })
+  run('copied Skill installs inside its own target without dependencies', process.execPath, [join(copiedSeat, 'scripts/install-template.mjs'), ignoreFixture], consumer)
+  assert.deepEqual(readFileSync(join(copiedSeat, 'SKILL.md')), skillBefore)
+  run('copied Skill refuses conflicting reinstallation', process.execPath, [join(copiedSeat, 'scripts/install-template.mjs'), ignoreFixture], consumer, 1)
   const gitEnv = {
     ...Object.fromEntries(Object.entries(env).filter(([key]) => !key.toUpperCase().startsWith('GIT_'))),
     GIT_CONFIG_GLOBAL: join(temporary, 'isolated.gitconfig'),
@@ -136,17 +144,17 @@ try {
     ['.agents/skills/.gitignore', '*/agents/openai.yaml', ignoredPaths[0]],
     ['.github/review-ownership/.gitignore', '__pycache__/', ignoredPaths[1]],
   ])
-  run('installed Skill exports and verifies its independent template', process.execPath, [npm, 'run', 'check:template'], seat, 0, 1_800_000)
-  run('linked pairing command refuses an undeclared consumer corpus', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-translation-pairing', '--repo', target, '--config', 'missing-pairs.json'], seat, 2)
-  run('linked subsystem command refuses missing consumer configuration', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-subsystem-pages', '--root', target, '--config', 'missing-subsystems.json'], seat, 2)
+  run('packed product exports and verifies its independent template', process.execPath, [npm, 'run', 'check:template'], packedRoot, 0, 1_800_000)
+  run('linked pairing command refuses an undeclared consumer corpus', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-translation-pairing', '--repo', target, '--config', 'missing-pairs.json'], packedRoot, 2)
+  run('linked subsystem command refuses missing consumer configuration', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-subsystem-pages', '--root', target, '--config', 'missing-subsystems.json'], packedRoot, 2)
   const guide = join(target, 'docs', 'upgrade-guide', 'v1.0.0', 'renamed-flag', 'guide.md')
   mkdirSync(join(guide, '..'), { recursive: true })
   const guideSource = '---\nkind: upgrade-guide\ndescription: Rename the consumer flag.\n---\n\n# Flag rename\n\n## Change\n\nThe old flag is replaced.\n\n## Migration\n\nUse the new flag and confirm the command output.\n'
   writeFileSync(guide, guideSource.replace('## Migration', '## Migrations'))
-  run('linked upgrade command rejects the invalid consumer guide', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-upgrade-guides', '--root', target], seat, 1)
+  run('linked upgrade command rejects the invalid consumer guide', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-upgrade-guides', '--root', target], packedRoot, 1)
   writeFileSync(guide, guideSource)
-  run('linked upgrade command accepts the corrected guide', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-upgrade-guides', '--root', target], seat)
-  const cli = join(seat, 'apps', 'cli', 'bin', 'governance.mjs')
+  run('linked upgrade command accepts the corrected guide', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-upgrade-guides', '--root', target], packedRoot)
+  const cli = packedCli
   const quotedNode = '"' + process.execPath + '"'
   writeFileSync(join(target, 'governance-checks.json'), JSON.stringify({ checks: { settings: quotedNode + ' validate.cjs' } }))
   run('installed consumer accepts valid state', process.execPath, [cli, 'check', target], consumer)
@@ -155,11 +163,11 @@ try {
   assert.match(rejected.stderr, /unsafe consumer mode/u)
   writeFileSync(join(target, 'settings.json'), JSON.stringify({ mode: 'safe' }))
   run('installed consumer recovers after correction', process.execPath, [cli, 'check', target], consumer)
-  run('installed reference graph is self-contained', process.execPath, [join(seat, 'packages', 'governance', 'documentation', 'src', 'verify-md-links.mjs')], seat)
+  run('packed product reference graph is self-contained', process.execPath, [join(packedRoot, 'packages', 'governance', 'documentation', 'src', 'verify-md-links.mjs')], packedRoot)
   run('refuse to overwrite existing Skill', process.execPath, [packedCli, 'install', target], consumer, 1)
   assert.deepEqual(readFileSync(join(seat, 'SKILL.md')), skillBefore)
   assert.equal(readFileSync(join(target, 'PROJECT.md'), 'utf8'), state)
-  console.log('\nSMOKE PASSED: actual tarball, installed workspace/Skill, consumer acceptance/rejection/recovery, self-contained references, overwrite refusal and preserved state')
+  console.log('\nSMOKE PASSED: actual tarball, standalone Skill and template installation, consumer acceptance/rejection/recovery, self-contained product references, overwrite refusal and preserved state')
 } finally {
   rmSync(temporary, { recursive: true, force: true })
 }

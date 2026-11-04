@@ -2,6 +2,12 @@
 
 English | [中文](CHANGELOG.zh.md)
 
+## 0.1.1
+
+### Changed
+
+- The project-governance Skill is a self-contained directory that can be copied into a project and installs the fixed template offline without npm workspace dependencies. Existing content and installation conflicts remain protected.
+
 ## 0.1.0
 
 ### Added

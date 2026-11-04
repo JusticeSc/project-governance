@@ -34,7 +34,7 @@ distribution以package.json的files作为唯一选择合同。在已有目标内
 
 ## 文档与状态归属
 
-[Skill](../SKILL.md)引导模板取得、建立与已有工程接入；[接入流程](../references/adoption.md)拥有受保护的迁移与交棒。取得模板后，新工程按导出工程内的[新项目教程](../templates/node-typescript/docs/cookbook/starting-a-project.md)执行。接入完成后，日常开发、修复、评审与接续使用目标工程的AGENTS.md、项目内Skills及各自文档owner，而不是安装后的采用座。
+[Skill](../skills/project-governance/SKILL.md)引导模板取得、建立与已有工程接入；[接入流程](../references/adoption.md)拥有受保护的迁移与交棒。取得模板后，新工程按导出工程内的[新项目教程](../templates/node-typescript/docs/cookbook/starting-a-project.md)执行。接入完成后，日常开发、修复、评审与接续使用目标工程的AGENTS.md、项目内Skills及各自文档owner，而不是安装后的采用座。
 
 本产品维护从[AGENTS.md](../AGENTS.md)进入。[项目结构](../references/project-structure.md)拥有建立与演进要求，而不是要求照抄本项目目录示例。[开发](development.zh.md)拥有命令，[测试](testing.zh.md)拥有证据边界，[溯源](provenance.zh.md)拥有署名。持久执行状态按[状态规则](../references/state-owner.md)复用目标已有owner；维护者会话进度与原始迁移回执不是产品依赖。
 

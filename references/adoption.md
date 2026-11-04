@@ -2,13 +2,13 @@
 
 <a id="adoption"></a>
 
-本页第2–7节提供单独开展项目治理改造时的深入参考，不是安装固定模板的前置门槛，也不要求每次安装重演历史实验。只需安装模板时，以[安装Skill](../SKILL.md)为入口；后续实际开发和维护由目标工程自身材料承接。
+本页第2–7节提供单独开展项目治理改造时的深入参考，不是安装固定模板的前置门槛，也不要求每次安装重演历史实验。只需安装模板时，以[安装Skill](../skills/project-governance/SKILL.md)为入口；后续实际开发和维护由目标工程自身材料承接。
 
 ## 1. 安装模板与确定后续范围
 
 <a id="adoption-scope"></a>
 
-本产品随附的 Node.js/TypeScript 工程是当前固定模板。先确认目标项目的技术栈、路径和保护对象，再按[安装Skill](../SKILL.md)从目标项目外执行 `npm run install-template -- <项目目录>`。新目录和无冲突的已有目录可直接安装；有冲突时命令列出冲突并在写入前停止。需要合并已有文件时，先审阅实际内容并获得必要授权，再把模板实际接入项目根目录；独立参考树不是安装结果。
+本产品随附的 Node.js/TypeScript 工程是当前固定模板。先确认目标项目的技术栈、路径和保护对象，再按[安装Skill](../skills/project-governance/SKILL.md)执行 `node <skill-dir>/scripts/install-template.mjs <项目目录>`。新目录和无冲突的已有目录可直接安装；有冲突时命令列出冲突并在写入前停止。需要合并已有文件时，先审阅实际内容并获得必要授权，再把模板实际接入项目根目录；独立参考树不是安装结果。
 
 模板的环境、Git 初始化和示例业务替换见模板自身的[开发指南](../templates/node-typescript/docs/development.md)及[新项目教程](../templates/node-typescript/docs/cookbook/starting-a-project.md)。安装成功不代表依赖、业务替换或后续项目改造已完成；不为本次安装额外要求完整治理验收。用户另行要求既有项目深度改造时，才按实际范围使用以下章节并保留用户文件、业务与权限边界。
 

@@ -1,8 +1,5 @@
-// Selects the files this Skill distributes and installs them into a repository's Skill seat.
-//
-// The root package.json `files` allowlist is the only selection source: no second list of paths
-// lives here. Installed content keeps the real workspace layout, because the runtime imports its
-// workspace packages by package name instead of relative paths.
+// The product allowlist selects the exporter's author files; the separately packaged Skill
+// directory is the only content installed into a consumer's discovery seat.
 import {
   constants,
   copyFileSync,
@@ -12,8 +9,9 @@ import {
   readFileSync,
   readdirSync,
   realpathSync,
-  rmSync,
+  rmdirSync,
   statSync,
+  unlinkSync,
 } from 'node:fs'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
@@ -48,7 +46,7 @@ export function packageFiles(sourceRoot) {
   const files = new Set()
   for (const entry of manifest.files) collectEntry(source, entry, files)
   if (!files.has('package.json')) {
-    throw new Error('root package.json must list "package.json" in its files allowlist so an installed seat keeps its workspace manifest')
+    throw new Error('root package.json must list "package.json" in its files allowlist')
   }
   const selected = new Set([...files].map((name) => name.toLowerCase()))
   for (const name of readdirSync(source)) {
@@ -67,9 +65,8 @@ export function packageFiles(sourceRoot) {
 /**
  * Install the distributed Skill into `<targetRoot>/.agents/skills/project-governance`.
  *
- * All inputs are validated before the first write. The seat is created exclusively: an existing
- * directory is never merged, overwritten or repaired. If copying fails, only the seat this call
- * created is removed.
+ * The seat is created exclusively: an existing directory is never merged, overwritten or repaired.
+ * If copying fails, only unchanged paths created by this call are removed.
  *
  * @param {string} sourceRoot product workspace root
  * @param {string} targetRoot existing target repository
@@ -77,7 +74,27 @@ export function packageFiles(sourceRoot) {
  */
 export function installSkill(sourceRoot, targetRoot) {
   const source = resolveSourceRoot(sourceRoot)
-  const files = packageFiles(source)
+  const skill = join(source, 'skills/project-governance')
+  const skillsStat = lstatSync(join(source, 'skills'))
+  if (skillsStat.isSymbolicLink() || !skillsStat.isDirectory()) throw new Error('Skill source parent must be a real directory')
+  const files = []
+  function collect(directory, prefix = '') {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const name = prefix ? `${prefix}/${entry.name}` : entry.name
+      const path = join(directory, entry.name)
+      const stat = lstatSync(path)
+      if (stat.isSymbolicLink()) throw new Error(`Skill symlinks are not supported: ${name}`)
+      if (stat.isDirectory()) collect(path, name)
+      else if (stat.isFile()) files.push(name)
+      else throw new Error(`Skill entry is not a regular file or directory: ${name}`)
+    }
+  }
+  const skillStat = lstatSync(skill)
+  if (skillStat.isSymbolicLink() || !skillStat.isDirectory()) throw new Error('Skill source must be a real directory')
+  collect(skill)
+  for (const required of ['SKILL.md', 'LICENSE', 'SOURCE-LICENSE.txt', 'scripts/install-template.mjs', 'assets/template.json.gz']) {
+    if (!files.includes(required)) throw new Error(`Skill source is missing ${required}`)
+  }
   if (typeof targetRoot !== 'string' || targetRoot.trim() === '') {
     throw new Error('install needs an existing target repository')
   }
@@ -109,17 +126,48 @@ export function installSkill(sourceRoot, targetRoot) {
   if (parentRel === '..' || parentRel.startsWith(`..${sep}`) || isAbsolute(parentRel)) {
     throw new Error('.agents/skills must resolve inside the target repository')
   }
-  let created = false
+  const created = []
   try {
     mkdirSync(seat)
-    created = true
+    created.push({ path: seat, directory: true, identity: lstatSync(seat) })
     for (const name of files) {
       const destination = join(seat, name)
-      mkdirSync(dirname(destination), { recursive: true })
-      copyFileSync(join(source, name), destination, constants.COPYFILE_EXCL)
+      const parentPath = dirname(destination)
+      const missing = []
+      for (let path = parentPath; path !== seat && !lstatSync(path, { throwIfNoEntry: false }); path = dirname(path)) missing.push(path)
+      for (const path of missing.reverse()) {
+        mkdirSync(path)
+        created.push({ path, directory: true, identity: lstatSync(path) })
+      }
+      copyFileSync(join(skill, name), destination, constants.COPYFILE_EXCL)
+      created.push({ path: destination, source: join(skill, name), identity: lstatSync(destination) })
     }
   } catch (error) {
-    if (created) rmSync(seat, { recursive: true, force: true })
+    const remaining = []
+    for (const item of created.reverse()) {
+      try {
+        if (item.directory) {
+          const current = lstatSync(item.path, { throwIfNoEntry: false })
+          if (!current) continue
+          if (!current.isDirectory() || !item.identity.ino || current.ino !== item.identity.ino || current.dev !== item.identity.dev) {
+            throw new Error('Created directory has changed')
+          }
+          rmdirSync(item.path)
+        }
+        else {
+          const current = lstatSync(item.path, { throwIfNoEntry: false })
+          if (!current) continue
+          if (!current.isFile() || !item.identity.ino || current.ino !== item.identity.ino ||
+              current.dev !== item.identity.dev || !readFileSync(item.path).equals(readFileSync(item.source))) {
+            throw new Error('Created path has changed')
+          }
+          unlinkSync(item.path)
+        }
+      } catch {
+        remaining.push(item.path)
+      }
+    }
+    if (remaining.length) throw new Error(`${error.message}\nPaths requiring review: ${remaining.join(', ')}`, { cause: error })
     throw error
   }
   return { seat, fileCount: files.length }

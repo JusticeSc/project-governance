@@ -1,5 +1,7 @@
 # 包 README、注释与 API 文档
 
+本页命令中的 `<product-root>` 指单独取得的产品仓库根目录，不是复制后的轻量 Skill 座。需解析器或其他 workspace 依赖的产品命令须在该产品根按锁准备依赖；目标工程仍使用自己的配置和入口。
+
 本页拥有代码与包的对外文档合同：包 README（§5）、注释与导出 JSDoc（§7）、可编译示例、类型等价与子系统页归属（§12）。改包对外行为、导出 API、公共类型，或新增包组与文档化类型时读本页；写作与预算见[文档结构、放置与写作](documentation-structure-and-prose.md)，双语侧见[双语文档：配对、术语与翻译](documentation-localization.md)。共同约定：触发定位以[根参考的读者触发索引](documentation.md#reader-triggers)为准；各节保留原节号（页内编号因此可能不连续），`源义务`、`迁移设计`与源证据坐标的含义同根参考开头；本页机制的来源坐标收在文末附录。
 
 ## 5. 包 README 合同
@@ -26,7 +28,7 @@
 **目标Summary入口。** 已交付零外部依赖的 `packages/governance/documentation/src/verify-package-readme-summaries.mjs`。在目标 `.doc-gates/package-readme-summaries.json` 写真实布局，例如 `{"packagesRoot":"packages","readme":"README.md"}`；字段省略使用这两个默认值，但配置文件必须存在。扫描包根README、每组README和每包README，与源三层范围对应；普通仓库最外层README不因此自动纳入。项目布局不同可改包根/英文文件名，不能配置单文件清单或提高100词上限来规避扫描。
 
 ```bash
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-package-readme-summaries.mjs
+node <product-root>/packages/governance/documentation/src/verify-package-readme-summaries.mjs
 ```
 
 在目标根运行，异地用 `--root <目标根>`，另一个配置用 `--config <仓库相对JSON>`。产品仓内入口为 `node packages/governance/documentation/src/verify-package-readme-summaries.mjs --root <目标根>`。包作者收到超限/缺节/空扫描退出1后，按完整包kind合同及目标真实模板重写、恢复语料并重跑；配置/参数/读取失败退出2，先修前提。源诊断指向源自己的dsh-doc模板，目标诊断显示kind并指向本已安装参考，不声称那些源模板已安装。计数通过不证明用户结果、选型代价或命题无损，评审者仍须检查；把实际入口接入目标已有顶层检查及适用CI，并另取CI必跑/平台阻断证据。
@@ -44,7 +46,7 @@ node .agents/skills/project-governance/packages/governance/documentation/src/ver
 }
 ```
 
-执行 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-package-readme-limitations.mjs`（异地 `--root`，另一配置 `--config`；产品仓内入口 `node packages/governance/documentation/src/verify-package-readme-limitations.mjs --root <目标根>`）。包必须有唯一原文H2 `## Known Limitations and Deferred Work` 且至少一个读者可见顶层列表项；标题变体、深度错误、多个近似节、只在代码围栏或HTML注释里的条目都被拒绝。确实无延迟工作的包须逐项登记理由，指向不存在包或理由为空同样失败。退出1按诊断修文档或审计豁免，退出2先修配置/解析器前提。
+执行 `node <product-root>/packages/governance/documentation/src/verify-package-readme-limitations.mjs`（异地 `--root`，另一配置 `--config`；产品仓内入口 `node packages/governance/documentation/src/verify-package-readme-limitations.mjs --root <目标根>`）。包必须有唯一原文H2 `## Known Limitations and Deferred Work` 且至少一个读者可见顶层列表项；标题变体、深度错误、多个近似节、只在代码围栏或HTML注释里的条目都被拒绝。确实无延迟工作的包须逐项登记理由，指向不存在包或理由为空同样失败。退出1按诊断修文档或审计豁免，退出2先修配置/解析器前提。
 
 目标比源多做一处显式适配：用 Markdown AST 删除代码块和渲染消失的HTML注释后再要求可见`- `行，因此围栏里的伪条目不会冒充限制。判定为正常 0、九类拒绝 1、修复恢复 0、缺解析器 2；采用方须在本仓真实包语料上重现这些结果。形态通过仍不证明限制真实、完整、最新，也检查不到中文侧；不是完整 Skill 安装、独立采用或可信 CI。
 
@@ -105,7 +107,7 @@ node .agents/skills/project-governance/packages/governance/documentation/src/ver
 ```
 
 ```bash
-node .agents/skills/project-governance/packages/governance/documentation/src/doc-typecheck.mjs
+node <product-root>/packages/governance/documentation/src/doc-typecheck.mjs
 ```
 
 将这条命令接入目标现有的顶层检查入口和适用CI，不另建一套竞争检查清单。`--root`指定真实目标根，`--config`指定根内配置；语料复用本模块的`roots`/`files`/`archiveRoots`规则，默认不把冻结Note当源。空语料、缺解析器/编译器、坏配置退出2，不冒充通过；非空语料里没有受编译`ts`块则保留源规则的退出0边界。
@@ -121,7 +123,7 @@ node .agents/skills/project-governance/packages/governance/documentation/src/doc
 **类型等价目标入口。** `packages/governance/documentation/src/verify-type-equiv.mjs`复用相同的目标语料和固定GFM解析器；TypeScript必须由目标的`package.json`位置解析，不下载或回退使用发布者编译器。采用方在`.doc-gates/type-equiv.json`声明适用的全部语料，例如`{ "roots": ["docs"], "manifest": ".doc-gates/type-equiv.manifest.json" }`。配置缺省清单即该路径；支持相同的`files`、`archiveRoots`、`--root`和`--config`规则。清单是`entries`数组，每项声明目标根相对的`doc`、`source`和`symbol`；完整声明不写`projection`，公共类写`"projection": "public-api"`。显式模块合并只用于完整接口：可加`"augmentations": [{ "source": "src/runtime.ts", "module": "./api.ts" }]`，其中module精确匹配源码的字符串字面量模块名，而不是自动发现所有扩展。
 
 ```bash
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-type-equiv.mjs
+node <product-root>/packages/governance/documentation/src/verify-type-equiv.mjs
 ```
 
 将该命令并入目标现有顶层检查/适用CI。门禁扫描全部声明语料，不只扫描清单中的文件；完整声明和公共投影分别以文档、符号、投影为键，重复围栏/清单、孤儿、缺源码符号、未闭合围栏、结构或原JSDoc漂移退出1。缺真实语料/编译器/解析器、坏配置或清单退出2。非空语料里没有等价围栏且清单为空时退出0；未要求全部新类型必须写文档。只有字节相同、顺序/数量/投影均相同的完整等价围栏族才使中文复用英文；变化的中文围栏仍需自己的清单/源匹配，不是翻译语义认证。
@@ -151,8 +153,8 @@ node .agents/skills/project-governance/packages/governance/documentation/src/ver
 `exemptions` 必须是“组名→具体理由”的对象，不是数组；没有豁免就保留 `{}`。包组所有者确认确实没有独立 owning 页后才能登记理由，不能为恢复绿色随意加豁免。字段省略时采用上述目录/文件名默认值；配置文件本身仍须存在。布局不同就改字段并核对发现的组数，不能把“0组通过”当作完整目标覆盖证据。
 
 ```bash
-npm ci --prefix .agents/skills/project-governance --ignore-scripts
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-subsystem-pages.mjs
+npm ci --prefix <product-root> --ignore-scripts
+node <product-root>/packages/governance/documentation/src/verify-subsystem-pages.mjs
 ```
 
 从目标项目根目录运行；异地调用用 `--root <目标根>`，`--config <配置路径>` 默认相对该根解析。在产品仓内可直接运行 `node packages/governance/documentation/src/verify-subsystem-pages.mjs --root <目标根>`。采用者须把同一命令加入目标既有顶层检查和适用 CI；上述本地入口存在不等于可信 CI 已必跑或 forge 已阻断合并。

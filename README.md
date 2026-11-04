@@ -8,33 +8,23 @@ An installation Skill and a fixed Node.js/TypeScript project template for coding
 
 ## Use
 
-Requires Node.js >=22.19.0 and npm with workspace support. From a product directory outside the target project:
+Obtain `project-governance/` from the [GitHub Releases](https://github.com/JusticeSc/project-governance/releases) Skill ZIP, or copy [`skills/project-governance/`](skills/project-governance/) from the repository. Extract the ZIP if needed and copy the entire directory to `<project>/.agents/skills/project-governance/`. The copied directory is the Skill: it includes the fixed template as an offline asset and does not require the rest of this repository or npm dependencies. Your agent may use its own Skill discovery conventions.
+
+Ask your agent to use [project-governance](skills/project-governance/SKILL.md) to install the template, or run the installer directly (Node.js >=22.19.0):
 
 ```sh
-npm ci --ignore-scripts
-npm run install-template -- ../your-project
+node <skill-dir>/scripts/install-template.mjs <project-directory>
 ```
 
-The target may be new or existing. Existing directories can be shared, but any conflicting file, link or non-directory blocks installation before project files are changed. The [Skill](SKILL.md) explains how to review and, with the necessary permission, merge conflicts into the actual project; a separate reference copy is not a completed installation.
+`<skill-dir>` is the copied Skill directory; `<project-directory>` may be new or existing. Existing directories can be shared, but any conflicting file, link or non-directory blocks installation before project files are changed. Review conflicts and obtain approval for necessary changes to existing content, then reconcile and install into the actual project; a separate reference copy is not a completed installation. On failure the installer attempts to roll back only its own unchanged paths and reports paths needing review.
 
-`install-skill` installs the Skill's own seat, not the template. Do not put the complete Skill seat inside the target template project: its additional copy of the template can interfere with the project's checks. Installation does not install dependencies or hooks, initialise Git or change remote settings.
-
-## Use the Skill in OMP
-
-Clone this GitHub repository into `<workspace>/.omp/skills/project-governance`. From `<workspace>`, prepare the Skill and check that OMP discovers it:
-
-```sh
-npm --prefix .omp/skills/project-governance ci --ignore-scripts
-omp read skill://project-governance
-```
-
-Start a new OMP session from `<workspace>` and ask it to use `project-governance` to install the template at the target project path. Keep the Skill checkout outside the target project. Existing conflicting files require review and permission as described in the [Skill](SKILL.md).
+Installation does not install dependencies or hooks, initialise Git, change remote settings, or replace the example business. After installation, follow the target project's AGENTS.md and documentation for setup and development.
 
 ## Template
 
-`templates/node-typescript/` is the fixed independent project used by the installer, not a member of this repository's npm workspace. For a separate reference copy, `export-template` still requires a new output directory.
+`templates/node-typescript/` is the fixed independent project used to build the Skill's asset, not a member of this repository's npm workspace. The copied Skill installs offline. From a product checkout with its npm workspace dependencies prepared, `npm run export-template -- <new-output-directory>` also creates a separate reference copy and requires a new output directory.
 
-Export creates a relative `.claude/skills` directory symlink to the canonical `.agents/skills` tree. The destination filesystem and account must permit symbolic links; on Windows this may require Developer Mode or an account with the symbolic-link privilege. Windows Git checkouts of the resulting project must materialize symbolic links (`core.symlinks=true`) to preserve Claude skill discovery.
+Installation and export create a relative `.claude/skills` directory symlink to the canonical `.agents/skills` tree. The destination filesystem and account must permit symbolic links; on Windows this may require Developer Mode or an account with the symbolic-link privilege. Windows Git checkouts of the resulting project must materialize symbolic links (`core.symlinks=true`) to preserve Claude skill discovery.
 
 ```sh
 npm run export-template -- ../new-project

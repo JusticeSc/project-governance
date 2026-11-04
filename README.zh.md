@@ -8,33 +8,23 @@
 
 ## 使用
 
-需要Node.js >=22.19.0及支持workspaces的npm。从目标项目之外的产品目录执行：
+从 [GitHub Releases](https://github.com/JusticeSc/project-governance/releases) 的 Skill ZIP 获取 `project-governance/`，或从仓库复制 [`skills/project-governance/`](skills/project-governance/)。如使用 ZIP，先解压，再将整个目录复制到 `<项目>/.agents/skills/project-governance/`。复制后的目录就是 Skill：其中包含离线固定模板资产，不依赖本仓其他文件或 npm 依赖。使用的 Agent 可能有自己的 Skill 发现约定。
+
+请 Agent 使用 [project-governance](skills/project-governance/SKILL.md) 安装模板，也可直接运行安装器（需要 Node.js >=22.19.0）：
 
 ```sh
-npm ci --ignore-scripts
-npm run install-template -- ../your-project
+node <skill-dir>/scripts/install-template.mjs <project-directory>
 ```
 
-目标可以是新目录或已有目录。已有目录可以共存，但文件、链接或非目录冲突会使安装器在修改项目前停止。[Skill](SKILL.md)说明如何审阅冲突并在取得必要授权后合并到实际项目；单独的参考副本不算安装完成。
+`<skill-dir>` 是复制后的 Skill 目录，`<project-directory>` 可以是新目录或已有目录。已有目录可以共存，但文件、链接或非目录冲突会使安装器在修改项目前停止。审阅冲突并对已有内容的必要变更取得授权，然后在实际项目中协调并安装；单独的参考副本不算安装完成。中途失败时，安装器只尝试回退本次创建且未改变的路径，并报告需要检查的路径。
 
-`install-skill`安装的是Skill自身的座位，不是项目模板。不要把完整Skill座放进目标模板项目：其中另一份模板可能干扰项目检查。安装本身不安装依赖或钩子，不初始化Git，也不改变远端设置。
-
-## 在 OMP 中使用 Skill
-
-将本 GitHub 仓库克隆到 `<工作区>/.omp/skills/project-governance`。从 `<工作区>` 准备 Skill 并检查 OMP 能否发现它：
-
-```sh
-npm --prefix .omp/skills/project-governance ci --ignore-scripts
-omp read skill://project-governance
-```
-
-从 `<工作区>` 启动新的 OMP 会话，请它使用 `project-governance` 将模板安装到指定项目路径。Skill 检出目录应在目标项目之外。已有文件冲突须按 [Skill](SKILL.md) 说明审阅并取得授权。
+安装不安装依赖或钩子，不初始化 Git，不改变远端设置，也不替换示例业务。安装后按目标工程的 AGENTS.md 和文档进行设置与开发。
 
 ## 模板
 
-`templates/node-typescript/`是安装器使用的固定独立工程，不是本仓npm workspace成员。若需单独的参考副本，`export-template`仍要求输出目录尚不存在。
+`templates/node-typescript/`是用于构建 Skill 资产的固定独立工程，不是本仓 npm workspace 成员。复制后的 Skill 可离线安装。在已准备 npm workspace 依赖的产品检出中，`npm run export-template -- <new-output-directory>` 也可创建单独的参考副本，输出目录须尚不存在。
 
-导出会创建相对的 `.claude/skills` 目录符号链接，指向唯一的 `.agents/skills` 目录。目标文件系统和账户必须允许创建符号链接；Windows 上可能需要开发者模式或具有创建符号链接权限的账户。之后通过 Windows Git 检出该项目时必须让符号链接实际生效（`core.symlinks=true`），才能保留 Claude 的 Skill 发现入口。
+安装和导出会创建相对的 `.claude/skills` 目录符号链接，指向唯一的 `.agents/skills` 目录。目标文件系统和账户必须允许创建符号链接；Windows 上可能需要开发者模式或具有创建符号链接权限的账户。之后通过 Windows Git 检出该项目时必须让符号链接实际生效（`core.symlinks=true`），才能保留 Claude 的 Skill 发现入口。
 
 ```sh
 npm run export-template -- ../new-project

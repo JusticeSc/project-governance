@@ -1,5 +1,7 @@
 # Markdown 链接、仓库引用与网站投影
 
+本页命令中的 `<product-root>` 指单独取得的产品仓库根目录，不是复制后的轻量 Skill 座。需解析器或其他 workspace 依赖的产品命令须在该产品根按锁准备依赖；目标工程仍使用自己的配置和入口。
+
 本页拥有 Markdown 面与仓库引用面：链接、锚点、换行及已交付的目标执行器（§15，含 §15.1、§15.2），仓库引用政策与网站投影（§16）。§15 与 §16 是不同义务族、不同执行器，同页只表示导航合并：源码注释或字符串中的 `docs/...` 路径归 §15，Git 提交号、组织／旧仓库 URL 与禁用术语政策归 §16，不能用一项替代另一项。共同约定：触发定位以[根参考的读者触发索引](documentation.md#reader-triggers)为准；各节保留原节号（页内编号因此可能不连续），`源义务`、`迁移设计`与源证据坐标的含义同根参考开头；本页机制的来源坐标收在文末附录。
 
 ## 15. Markdown 链接、锚点与换行
@@ -29,11 +31,11 @@
 
 ### 15.1 已交付的目标链接执行器
 
-安装后的 `packages/governance/documentation/src/verify-md-links.mjs` 使用同一组固定版本 GFM 解析器。依赖按安装座根的工作区锁准备，不单独给某个包目录安装；消费者不需要源仓。以下命令从目标项目根目录执行：
+产品仓库的 `packages/governance/documentation/src/verify-md-links.mjs` 使用固定版本 GFM 解析器。依赖按产品根的工作区锁准备，不单独给某个包目录安装；以下命令从目标项目根目录执行：
 
 ```bash
-npm ci --prefix .agents/skills/project-governance --ignore-scripts
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-md-links.mjs
+npm ci --prefix <product-root> --ignore-scripts
+node <product-root>/packages/governance/documentation/src/verify-md-links.mjs
 ```
 
 先在目标的 `.doc-gates/markdown-links.json` 声明真实受管 Markdown 语料。例如确实同时存在文档和 Note 树的项目：
@@ -54,7 +56,7 @@ node .agents/skills/project-governance/packages/governance/documentation/src/ver
 
 ### 15.2 已交付的目标换行执行器
 
-在目标 `.doc-gates/markdown-wrap.json` 按§15.1同一结构声明 `roots`、`files`、`archiveRoots`；独立配置是因为源换行/链接程序的发现语料并不完全相同。纳入所有适用文档、指令与 expected Markdown 输出，不以示例路径代替完整目标语料。准备同一固定解析器后，从目标 cwd 运行 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-md-wrap.mjs`；异地调用支持 `--root`、`--config`。成功退出0，跨行段落逐项输出 `file:line` 并退出1；前提、配置或语料不可用退出2。程序只检查，不重写内容。
+在目标 `.doc-gates/markdown-wrap.json` 按§15.1同一结构声明 `roots`、`files`、`archiveRoots`；独立配置是因为源换行/链接程序的发现语料并不完全相同。纳入所有适用文档、指令与 expected Markdown 输出，不以示例路径代替完整目标语料。准备同一固定解析器后，从目标 cwd 运行 `node <product-root>/packages/governance/documentation/src/verify-md-wrap.mjs`；异地调用支持 `--root`、`--config`。成功退出0，跨行段落逐项输出 `file:line` 并退出1；前提、配置或语料不可用退出2。程序只检查，不重写内容。
 
 **行为边界。** 换行/链接执行器在目标语料上的正常、拒绝与保留内容的合行恢复，必须在目标实际配置下逐项观察；多行 Setext 标题通过是源谓词的实际边界，不是标题写作规则的豁免。通过只证明所配置语料的范围，不证明真实目标全仓覆盖、可信 CI 必跑、平台阻断或独立来源等价。
 
@@ -73,7 +75,7 @@ node .agents/skills/project-governance/packages/governance/documentation/src/ver
 
 **源义务（具体术语）。** `verify-concrete-terms` 禁止在维护文件中使用 `provenance` 这个笼统词（按 `prove`+`nance` 构造匹配）；排除 `vendor/`、归档、发布快照 `docs/persistence-changes/releases/dsh-v*.schema.json`、历史格式 `docs/persistence-changes/historical-formats/v*.schema.json`/`.i18n.yaml` 及其生成区域；提示改用更具体术语。`deepseek-harness/scripts/verify-concrete-terms.ts:1-105@687f282e`
 
-**目标执行入口。** 采用方在目标根目录声明 `.doc-gates/repository-references.json`，运行安装座的 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-repository-references.mjs`（在产品仓内可直接用 `node packages/governance/documentation/src/verify-repository-references.mjs --root <目标根>`）。维护者负责审核语料与三类规则，真实 CI 接入者必须使用普通检查而非诊断 `--list`。
+**目标执行入口。** 采用方在目标根目录声明 `.doc-gates/repository-references.json`，运行产品仓库的 `node <product-root>/packages/governance/documentation/src/verify-repository-references.mjs`（在产品仓内可直接用 `node packages/governance/documentation/src/verify-repository-references.mjs --root <目标根>`）。维护者负责审核语料与三类规则，真实 CI 接入者必须使用普通检查而非诊断 `--list`。
 
 ```json
 {

@@ -34,7 +34,7 @@ Documentation gates load an explicitly declared corpus and their own predicate c
 
 ## Document and state ownership
 
-[Skill](../SKILL.md) guides template acquisition, setup and existing-project integration; the [adoption procedure](../references/adoption.md) owns protected migration and handoff. After acquisition, new projects follow the exported [start-a-project tutorial](../templates/node-typescript/docs/cookbook/starting-a-project.md). After integration, daily development, fixes, review and continuation use the target project's AGENTS.md, project-local Skills and owning documentation, not the installed adoption seat.
+[Skill](../skills/project-governance/SKILL.md) guides template acquisition, setup and existing-project integration; the [adoption procedure](../references/adoption.md) owns protected migration and handoff. After acquisition, new projects follow the exported [start-a-project tutorial](../templates/node-typescript/docs/cookbook/starting-a-project.md). After integration, daily development, fixes, review and continuation use the target project's AGENTS.md, project-local Skills and owning documentation, not the installed adoption seat.
 
 This product's maintenance starts from [AGENTS.md](../AGENTS.md). [Project structure](../references/project-structure.md) owns establishment and evolution, not this project's directory example. [Development](development.md) owns commands and [testing](testing.md) owns evidence boundaries. [Provenance](provenance.md) owns attribution. Persistent execution state uses the target's existing owner under the [state rule](../references/state-owner.md); maintainer session progress and raw migration receipts are not product dependencies.
 

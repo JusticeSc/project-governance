@@ -48,6 +48,9 @@ function createSourceRoot(base, files = DEFAULT_FILES) {
     'reference/.cache',
     'scripts',
     'private',
+    'skills/project-governance/reference/nested',
+    'skills/project-governance/assets',
+    'skills/project-governance/scripts',
   ]) {
     mkdirSync(join(source, directory), { recursive: true })
   }
@@ -66,6 +69,12 @@ function createSourceRoot(base, files = DEFAULT_FILES) {
   writeFileSync(join(source, 'scripts/two.mjs'), 'export const two = 2\n')
   writeFileSync(join(source, 'scripts/ignored.txt'), 'ignored\n')
   writeFileSync(join(source, 'private/secret.txt'), 'secret\n')
+  writeFileSync(join(source, 'skills/project-governance/SKILL.md'), '# fixture skill\n')
+  writeFileSync(join(source, 'skills/project-governance/reference/nested/b.md'), '# b\n')
+  writeFileSync(join(source, 'skills/project-governance/LICENSE'), 'MIT\n')
+  writeFileSync(join(source, 'skills/project-governance/SOURCE-LICENSE.txt'), 'attribution\n')
+  writeFileSync(join(source, 'skills/project-governance/assets/template.json.gz'), 'fixture payload\n')
+  writeFileSync(join(source, 'skills/project-governance/scripts/install-template.mjs'), '// fixture installer\n')
   return source
 }
 
@@ -235,7 +244,7 @@ describe('distribution selection', () => {
 })
 
 describe('installation', () => {
-  it('installs the selected files into a new seat and returns the location and count', () => {
+  it('installs only the Skill files into a new seat and returns the location and count', () => {
     const base = makeBase()
     const source = createSourceRoot(base)
     const target = join(base, 'target')
@@ -245,7 +254,7 @@ describe('installation', () => {
     writeFileSync(join(target, '.agents/skills/other-skill/keep.md'), '# keep\n')
 
     const result = installSkill(source, target)
-    const expected = packageFiles(source)
+    const expected = ['SKILL.md', 'LICENSE', 'SOURCE-LICENSE.txt', 'reference/nested/b.md', 'assets/template.json.gz', 'scripts/install-template.mjs']
 
     assert.equal(result.seat, join(target, SEAT_PATH))
     assert.equal(result.fileCount, expected.length)
@@ -255,8 +264,8 @@ describe('installation', () => {
     assert.equal(readFileSync(join(target, 'README.md'), 'utf8'), '# consumer\n')
     assert.equal(readFileSync(join(target, '.agents/skills/other-skill/keep.md'), 'utf8'), '# keep\n')
     assert.equal(lstatSync(join(target, '.agents')).isDirectory(), true)
+    assert.equal(existsSync(join(result.seat, 'package.json')), false)
     assert.equal(existsSync(join(result.seat, 'private')), false)
-    assert.equal(existsSync(join(result.seat, 'reference/node_modules')), false)
   })
 
   it('refuses an existing seat without overwriting it', () => {
@@ -273,7 +282,7 @@ describe('installation', () => {
 
     rmSync(join(target, SEAT_PATH), { recursive: true, force: true })
     const recovered = installSkill(source, target)
-    assert.equal(recovered.fileCount, packageFiles(source).length)
+    assert.equal(recovered.fileCount, 6)
     assert.equal(readFileSync(join(recovered.seat, 'SKILL.md'), 'utf8'), '# fixture skill\n')
   })
 
@@ -317,20 +326,21 @@ describe('installation', () => {
 })
 
 describe('CLI installation', () => {
-  it('installs from the workspace, reports the preparation step and never overwrites', () => {
+  it('installs the standalone Skill and never overwrites it', () => {
     const base = makeBase()
     const target = join(base, '项目 consumer repo')
     mkdirSync(target)
     writeFileSync(join(target, 'README.md'), '# consumer\n')
-    const expected = packageFiles(workspaceRoot)
 
     const first = runCli(['install', target], base)
     assert.equal(first.status, 0, `${first.stdout}\n${first.stderr}`)
-    assert.match(first.stdout, /npm ci --ignore-scripts/)
-    assert.match(first.stdout, new RegExp(`${expected.length} files`))
+    assert.match(first.stdout, /Next: read SKILL\.md/)
     const seat = join(target, SEAT_PATH)
-    assert.equal(existsSync(join(seat, 'package.json')), true)
-    for (const name of expected) assert.equal(existsSync(join(seat, name)), true, name)
+    assert.deepEqual(readFileSync(join(seat, 'SKILL.md')), readFileSync(join(workspaceRoot, 'skills/project-governance/SKILL.md')))
+    assert.deepEqual(readFileSync(join(seat, 'assets/template.json.gz')), readFileSync(join(workspaceRoot, 'skills/project-governance/assets/template.json.gz')))
+    assert.equal(existsSync(join(seat, 'scripts/install-template.mjs')), true)
+    assert.equal(existsSync(join(seat, 'package.json')), false)
+    assert.equal(existsSync(join(seat, 'templates')), false)
 
     writeFileSync(join(seat, 'SKILL.md'), '# user edited seat\n')
     const second = runCli(['install', target], base)

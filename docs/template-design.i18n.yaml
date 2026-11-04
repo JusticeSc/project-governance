@@ -1,7 +1,7 @@
 # Bilingual-pair consistency record for template-design.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
-#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/template-design.md
+#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/template-design.md
 /node-typescript-governance-template-contract:
   en: 978a138cf2dab2e0
   zh: 58dcef49ab77bde8

@@ -9,8 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { runChecks } from '@project-governance/checks'
 import { installSkill } from '@project-governance/distribution'
 
-// apps/cli/bin -> product workspace root; when the Skill is seated, the same layout gives the
-// installed seat root, so a seat installs a seat with the identical contract.
+// apps/cli/bin -> product workspace root.
 const TOOL_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 
 const USAGE = `usage:
@@ -25,12 +24,9 @@ directory. Exit codes: 0 all checks passed, 1 a check failed or was terminated b
 check never creates .governance/, never derives commands from project files and never changes the
 repository it checks.
 
-install copies only the files the root package.json files allowlist selects into an existing
-repository. It refuses an existing seat and redirected .agents parents, adds no hooks, changes no
-project policy and touches no remote settings. Nothing is fetched from the network: the installed
-seat imports its workspace packages by name, so prepare it yourself with
-  npm ci --ignore-scripts
-inside .agents/skills/project-governance before running its commands.`
+install copies the self-contained Skill directory into an existing repository. It refuses an
+existing seat and redirected .agents parents, adds no hooks, changes no project policy and touches
+no remote settings. The Skill's template installer needs Node.js but no npm install or network.`
 
 const args = process.argv.slice(2)
 const command = args[0]
@@ -87,7 +83,6 @@ function install(argv) {
     return 1
   }
   console.log(`Installed project-governance (${result.fileCount} files) at ${result.seat}`)
-  console.log('Prepare the installed seat with: npm ci --ignore-scripts')
   console.log('Next: read SKILL.md in the installed seat. No project policy, hooks, remote settings or workflows were changed.')
   return 0
 }

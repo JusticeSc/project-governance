@@ -16,14 +16,9 @@ project-governance --help
 
 `check` 默认使用当前目录，并读取该仓库内的 `governance-checks.json`。`--policy` 接受仓库内相对路径；绝对路径只有在仍解析到仓库内时才被接受。整份策略会在第一条命令运行前完成校验，随后按策略顺序以仓库根为工作目录执行。退出码 `0` 表示全部配置检查通过，`1` 表示某检查返回非零状态或被信号终止，`2` 表示策略、路径或参数无法校验——此时不执行任何命令。
 
-`install` 只复制产品根 `package.json` 的 files 白名单所选文件，写入已有仓库的安装座。它拒绝已存在的安装座、本身就是符号链接／junction／文件的 `.agents` 或 `.agents/skills` 父目录，以及不存在的目标。复制失败只删除本次运行创建的安装座。
+`install` 将独立的 Skill 目录复制到已有仓库的安装座。它拒绝已存在的安装座、本身就是符号链接／junction／文件的 `.agents` 或 `.agents/skills` 父目录，以及不存在的目标。失败时只移除本次创建且未改变的文件和空目录，并报告无法安全移除的路径。
 
-`install` 会打印安装座位置与复制文件数，并提示安装座按包名导入 workspace 包，需要自行准备：
-
-```sh
-cd .agents/skills/project-governance
-npm ci --ignore-scripts
-```
+`install` 放置的是 Skill，而不是项目模板。安装模板请按复制后的 Skill 指引操作；其安装器可离线运行，无需 npm workspace 依赖。
 
 ## 从不执行的操作
 
@@ -34,7 +29,7 @@ npm ci --ignore-scripts
 
 ## 已知限制与后续工作
 
-- 安装座在按 `npm ci --ignore-scripts` 准备好 workspace 依赖之前不可运行；本命令的包名导入依赖 npm workspace 链接。若产品根未把锁文件列入 files 白名单，分发本身不提供锁文件。
+- 模板安装与安装 Skill 座是不同步骤；模板安装需要 Node.js >=22.19.0，以及允许创建目录符号链接的文件系统和账户。
 - 命令没有 `init`、`status` 或知识查询子命令；这些行为不属于本产品。
 - `check` 通过操作系统 shell、以当前用户权限执行策略中的命令字符串。策略作者被信任；沙箱与命令解析不在范围内。
 - 不支持自动发现目标仓库之外的策略，也没有检查登记表。

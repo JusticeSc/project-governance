@@ -1,6 +1,6 @@
 {
   "name": "project-governance",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -21,6 +21,7 @@
     "check:docs": "node scripts/check-docs.mjs",
     "install-template": "node scripts/install-template.mjs",
     "export-template": "node scripts/export-template.mjs",
+    "generate:template-payload": "node scripts/generate-template-payload.mjs",
     "check:template": "node scripts/check-template.mjs",
     "check": "node apps/cli/bin/governance.mjs check . --policy governance-checks.json",
     "smoke": "node scripts/smoke.mjs"
@@ -35,7 +36,6 @@
     "CHANGELOG.md",
     "CHANGELOG.zh.md",
     "CHANGELOG.i18n.yaml",
-    "SKILL.md",
     "README.i18n.yaml",
     "references/",
     "docs/",
@@ -43,6 +43,7 @@
     "packages/",
     "scripts/",
     "tests/",
+    "skills/project-governance/",
     ".doc-gates/",
     ".github/workflows/check.yml",
     "governance-checks.json",

@@ -5,9 +5,8 @@
 // A record holds one entry per heading section with translated content, so independent edits to different
 // sections change separate record lines and merge with Git's default text merge.
 //
-// One adaptation: the recovery command written into a fresh record names this package's installed command
-// (`.agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs`)
-// instead of the source workspace's `pnpm` script.
+// The recovery command identifies the product checkout explicitly; the standalone Skill
+// does not contain the documentation package.
 import { createHash } from 'node:crypto'
 import { basename } from 'node:path'
 import { generatedRegions, parseTranslationMarkdown } from './translation-pairing.mjs'
@@ -217,7 +216,7 @@ export function renderTranslationPairingRecord(paths, record) {
     `# Bilingual-pair consistency record for ${basename(paths.source)} (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading`,
     '# section, a hash of its English and Chinese blocks outside code blocks and generated regions.',
     '# After editing either side, bring the other along and re-record with:',
-    `#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write ${paths.source}`,
+    `#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write ${paths.source}`,
     ...[...record].flatMap(([key, hashes]) => [`${key}:`, `  en: ${hashes.en}`, `  zh: ${hashes.zh}`]),
     '',
   ].join('\n')

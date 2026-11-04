@@ -12,7 +12,7 @@ npm test先运行各workspace自己的测试脚本，再运行根测试。checks
 
 ## 真实产品smoke
 
-npm run smoke使用npm pack，在独立消费者中安装tarball，再于其workspace根执行npm ci --offline --ignore-scripts。它调用真实CLI，把Skill安装进带空格／Unicode路径的已有项目，准备安装座并执行消费者声明的检查；随后在安装座运行npm run check:structure并期望接受，在apps/cli/bin/governance.mjs的shebang之后注入对packages/governance/checks/src/index.mjs的真实相对私有import，期望门拒绝，再按字节恢复并期望重新接受。真实无效配置失败，恢复后成功；重复安装被拒绝，消费者原有状态字节不变。安装文档检查不依赖兄弟来源检出。
+`npm run smoke`打包产品并将tarball安装到隔离消费者，再离线准备其workspace。打包后的CLI向已有项目安装独立Skill并检查冲突保护；复制的Skill无需workspace依赖即可将模板安装到自身所在项目，并拒绝重复安装。打包产品的结构检查先接受、再拒绝跨包私有导入、精确恢复后重新接受；消费者检查也覆盖正常、无效配置拒绝及恢复。既有消费者状态保持不变。
 
 smoke使用首次npm ci已经取得的依赖。离线缓存失败是前提失败，不证明产品回归或成功。载荷结构与一次安装调用本身，不证明全部交互任务、操作系统、远端服务或消费者专属策略。
 

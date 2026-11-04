@@ -7,7 +7,7 @@
   ],
   "files": [
     "AGENTS.md",
-    "SKILL.md",
+    "skills/project-governance/SKILL.md",
     "README.md",
     "README.zh.md",
     "CHANGELOG.md",

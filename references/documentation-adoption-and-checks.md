@@ -1,5 +1,7 @@
 # 门禁组合与项目建立、改造
 
+本页命令中的 `<product-root>` 指单独取得的产品仓库根目录，不是复制后的轻量 Skill 座。需解析器或其他 workspace 依赖的产品命令须在该产品根按锁准备依赖；目标工程仍使用自己的配置和入口。
+
 本页拥有门禁组合与项目建立、改造：编辑循环／提交前／CI 的门禁组合（§22），以及把空项目建立或把已有项目改造到同一规范状态的迁移设计、事实触发条件与状态判据（§23，含 §23.1–§23.5）。共同目标状态、固定职责与工程保证归[项目治理标准](project-standard.md#project-standard)，逐步建立与改造操作归[接入流程](adoption.md#adoption)；建立新项目或改造已有项目、调整门禁分层或判定某项义务是已落实／未落实／阻塞／不适用时读本页，单项规则本身仍归其所属页。共同约定：触发定位以[根参考的读者触发索引](documentation.md#reader-triggers)为准；各节保留原节号（页内编号因此可能不连续），`源义务`、`迁移设计`与源证据坐标的含义同根参考开头；本页机制的来源坐标收在文末附录。
 
 ## 22. 门禁组合与执行顺序
@@ -69,7 +71,7 @@
 
 **消费者参数与 owner。** 非空 `.doc-gates/doc-budgets.json`，键为常驻文档的仓库相对路径，值为评审后的正整数上限；同时登记未预算层的 owner/理由。预算 owner 与内容 owner 可以不同，但都要写清。
 
-**机械入口与限制。** 从目标 cwd 执行 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-doc-budgets.mjs`；异地可用 `--root <目标> --config <仓库相对清单>`。普通模式在超限、清单指向的缺失文件或非法上限时退出 1；配置缺失/不可读/非对象/空清单或调用无效退出 2。`--list` 只列用量并退出 0，即使存在 OVER/MISS/BAD，因此不能用于 CI 阻断。它只统计空白分隔词数和清单内文件，不判断内容质量，也不阻止新增未列入清单的膨胀文档。
+**机械入口与限制。** 从目标 cwd 执行 `node <product-root>/packages/governance/documentation/src/verify-doc-budgets.mjs`；异地可用 `--root <目标> --config <仓库相对清单>`。普通模式在超限、清单指向的缺失文件或非法上限时退出 1；配置缺失/不可读/非对象/空清单或调用无效退出 2。`--list` 只列用量并退出 0，即使存在 OVER/MISS/BAD，因此不能用于 CI 阻断。它只统计空白分隔词数和清单内文件，不判断内容质量，也不阻止新增未列入清单的膨胀文档。
 
 **语义评审。** 判断文档是否必须常驻、超限内容应迁移到哪一层、提高上限的理由、5% 余量是否保留，以及未预算层的理由与重新激活条件。
 
@@ -83,7 +85,7 @@
 
 **消费者参数与 owner。** 分别为 `.doc-gates/markdown-links.json` 与 `.doc-gates/markdown-wrap.json` 声明真实语料：`roots`（递归目录）、`files`（单文件）、`archiveRoots`（只跳过源扫描；缺省为源归档路径，目标更换归档位置时同步）。纳入全部适用文档、包说明、指令、技能文档和 expected Markdown 输出，不以示例路径代替完整语料；归档树不存在时省略相应字段，不伪造目录。
 
-**机械入口与限制。** 先按[§15.1](documentation-links-and-repository-policy.md#markdown-gates)准备固定解析器依赖，再从目标 cwd 执行 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-md-links.mjs` 与 `node .agents/skills/project-governance/packages/governance/documentation/src/verify-md-wrap.mjs`；异地可用 `--root/--config`。成功退出 0，缺目标/`.md` 锚点或跨行段落逐项输出 `file:line` 并退出 1，配置、语料、解析器或调用不可用退出 2；两个程序只检查不重写。链接程序跳过外部 URL、协议相对地址和根绝对路径，因此 `/docs/...` 误用抓不住；非 Markdown 片段交给渲染器，不判锚点。
+**机械入口与限制。** 先按[§15.1](documentation-links-and-repository-policy.md#markdown-gates)准备固定解析器依赖，再从目标 cwd 执行 `node <product-root>/packages/governance/documentation/src/verify-md-links.mjs` 与 `node <product-root>/packages/governance/documentation/src/verify-md-wrap.mjs`；异地可用 `--root/--config`。成功退出 0，缺目标/`.md` 锚点或跨行段落逐项输出 `file:line` 并退出 1，配置、语料、解析器或调用不可用退出 2；两个程序只检查不重写。链接程序跳过外部 URL、协议相对地址和根绝对路径，因此 `/docs/...` 误用抓不住；非 Markdown 片段交给渲染器，不判锚点。
 
 **语义评审。** 核对语料是否完整、链接文字与目标语义是否相符、标题是否单行、是否依赖站内绝对路由、归档外的出站链接是否仍应维护。
 
@@ -95,7 +97,7 @@
 
 **保留的义务与例外。** 编辑循环、提交前和 CI 三层可以不同宽度，但规则来源必须相同；例行本地检查依据完整 diff 选择最小充分集，CI 保留完整覆盖及平台矩阵。quick 是完整集的子集，不能替代完整集；网站专用入口不能替代完整文档组。已有效且未被本次改动失效的证据可以复用，不因层级名称重复执行。本地脚本可被绕过，只有 CI 必需检查与分支保护才是强制。分别记录“检查器存在”“CI 运行”“合并被阻塞”三种证据，不能混为一谈。失败先修根因，不通过扩大排除、降低预算或删除测试来变绿；门禁不可用时报告不可用，不用“已人工检查”替代自动保证。`deepseek-harness/package.json:104-140@687f282e`、`deepseek-harness/scripts/run-gates.ts:805-883@687f282e`
 
-**消费者参数与 owner。** 复用目标已有顶层入口（脚本、`verify.ps1`、`npm run check` 等），或使用 `node .agents/skills/project-governance/apps/cli/bin/governance.mjs check <repo> --policy <仓内清单>`；省略 `--policy` 时读取仓库根的 `governance-checks.json`。清单只登记命令，不复制需求或进度。另需 CI 工作流、分支保护/required checks 的配置权限与负责人。
+**消费者参数与 owner。** 复用目标已有顶层入口（脚本、`verify.ps1`、`npm run check` 等），或使用 `node <product-root>/apps/cli/bin/governance.mjs check <repo> --policy <仓内清单>`；省略 `--policy` 时读取仓库根的 `governance-checks.json`。清单只登记命令，不复制需求或进度。另需 CI 工作流、分支保护/required checks 的配置权限与负责人。
 
 **机械入口与限制。** 接线验收要求本地与 CI 复用检查定义、公共入口及失败传播；例行本地可选择最小充分子集，不能据此宣称 CI 完整集通过。`check` 只按清单顺序执行命令并报告退出码：策略缺失/无效/检查为空退出 2，任一命令失败退出 1；它不推导检查、不证明语义完整、不证明平台强制。工作流文件存在不等于远端已配置；没有授权不改生产保护或凭据。
 

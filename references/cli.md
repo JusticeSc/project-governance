@@ -1,6 +1,6 @@
 # 安装与检查命令
 
-本页拥有命令合同。项目模板安装由[Skill](../SKILL.md)引导；需要另外开展较完整的项目改造时，可参考[接入流程](adoption.md)。交棒后的日常任务从目标工程AGENTS与项目内Skills进入。Node要求及实际命令定义见根[package.json](../package.json)。
+本页拥有命令合同。项目模板安装由[Skill](../skills/project-governance/SKILL.md)引导；需要另外开展较完整的项目改造时，可参考[接入流程](adoption.md)。交棒后的日常任务从目标工程AGENTS与项目内Skills进入。Node要求及实际命令定义见根[package.json](../package.json)。
 
 <a id="commands"></a>
 ## 命令
@@ -14,15 +14,13 @@
 
 ## 安装项目模板
 
-从产品根执行 `npm run install-template -- <项目目录>`。目录可不存在或已存在；安装器复用导出器取得固定模板，完整扫描后才写入。已有目录可以共存；同名文件、链接或不可合并的目录列为冲突，任何冲突都会在写入项目前退出。执行中途失败时仅尝试移除本次创建且未改变的内容，无法安全移除的路径会报告供检查；不覆盖或删除已有项目文件。命令不安装依赖、钩子或远端配置。
+运行 `node <skill-dir>/scripts/install-template.mjs <项目目录>`，或从产品根执行 `npm run install-template -- <项目目录>`。目录可不存在或已存在；安装器完整扫描冲突后才写入。已有目录可以共存；同名文件、链接或不可合并的目录列为冲突，任何冲突都会在写入项目前退出。执行中途失败时仅尝试移除本次创建且未改变的内容，无法安全移除的路径会报告供检查；不覆盖或删除已有项目文件。命令不安装依赖、钩子或远端配置。
 
-模板需要可创建目录符号链接的环境，Windows可能需要开发者模式或相应权限。遇冲突时按[Skill](../SKILL.md)审阅并获准合并；仅导出参考树不是完成安装。
+模板需要可创建目录符号链接的环境，Windows可能需要开发者模式或相应权限。遇冲突时按[Skill](../skills/project-governance/SKILL.md)审阅并获准合并；仅导出参考树不是完成安装。
 
 ## 安装
 
-安装目标必须是已存在的仓库目录。安装器在目标建立 .agents/skills/project-governance，独占创建；现有安装即使为空也拒绝，重定向的.agents或skills父目录拒绝。文件由根package.json.files统一选择，完整校验后复制，失败仅移除本次新建的座。它不修改业务、任务状态、策略、钩子、CI或远端，也不执行第三方安装脚本。
-
-安装后在座根执行npm ci --ignore-scripts准备workspace依赖，再由Agent读SKILL.md实施接入与交棒；安装成功并不等于项目已完成迁移或首次验证。每个目标维护自己的真实检查配置与日常入口；本包源码的配置不能当作消费者事实，安装座不是第二日常规则或状态owner。安装位置改变后仍按各工具的目标root/cwd约定运行。
+CLI 的 `install <已存在仓库>` 安装的是轻量 Skill 目录，而非项目模板；用户也可按 [README](../README.zh.md)直接复制 `skills/project-governance/` 到目标的 `.agents/skills/project-governance/`。安装后的 Skill 具备离线固定模板资产，其安装器无需 npm workspace 依赖。实际模板安装和交棒按 Skill 执行；安装 Skill 座不等于项目模板已安装。每个目标维护自己的真实检查配置与日常入口，安装座不是第二日常规则或状态 owner。
 
 ## 执行检查
 

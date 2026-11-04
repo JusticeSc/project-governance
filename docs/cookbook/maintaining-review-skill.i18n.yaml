@@ -1,7 +1,7 @@
 # Bilingual-pair consistency record for maintaining-review-skill.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
-#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/cookbook/maintaining-review-skill.md
+#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/cookbook/maintaining-review-skill.md
 /maintaining-a-review-skill:
   en: 3b870a0ac4e15536
   zh: 39bffba340b545b9

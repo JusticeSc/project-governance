@@ -1,7 +1,7 @@
 # Bilingual-pair consistency record for development.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
-#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/development.md
+#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/development.md
 /development:
   en: 114641fdd43fe0ff
   zh: c9139f8ba9d90fd8
@@ -18,8 +18,8 @@
   en: 2610ed445be44d49
   zh: 2c4d4a66210d1d02
 /development/template-workspace:
-  en: 510e5ba72b7173e0
-  zh: 08cc7d2100cf0b4a
+  en: 675e1e21a3be0b4c
+  zh: c18ae26a8a46d0f5
 /development/install-and-distribute:
-  en: db4da6699bc10ad1
-  zh: 2b656069b13b46fc
+  en: 25389b37b43aa2f7
+  zh: 61b78cc4b9658365

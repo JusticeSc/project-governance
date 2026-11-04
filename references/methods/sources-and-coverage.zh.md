@@ -1,6 +1,6 @@
 # 方法来源与争议
 
-本页只拥有固定来源、可核对的争议与既有68条来源对应，不是第二份规则正文、执行状态或完整性认证。操作从[Skill](../../SKILL.md)与[参考索引](../index.md)进入。
+本页只拥有固定来源、可核对的争议与既有68条来源对应，不是第二份规则正文、执行状态或完整性认证。操作从[Skill](../../skills/project-governance/SKILL.md)与[参考索引](../index.md)进入。
 
 主要组织索引是[《项目的质量把关：规则、动机与例子》](https://jyywiki.cn/GSE/2026/p10/dsh-checks.html)，页面资料日期2026-10-25，固定读取日期2026-10-29，固定HTML的SHA-256为48ff5f3117647b888d94350507bb5d1345b55617ed0cf5b34408949c8c4b204d。第一方核对固定于[DeepSeek Harness 687f282e8625c6b8d11ff58211a90524be2e4317](https://github.com/deepseek-ai/deepseek-harness/tree/687f282e8625c6b8d11ff58211a90524be2e4317)；许可见[SOURCE-LICENSE.txt](../../SOURCE-LICENSE.txt)。二手索引不是第一方全部义务的穷尽清单。
 

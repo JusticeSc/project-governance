@@ -211,6 +211,7 @@ export function verifyStructure(directory) {
     }
   }
   corpus.push(...collect(join(root, 'scripts'), null, 'root'))
+  corpus.push(...collect(join(root, 'skills'), null, 'root'))
   corpus.push(...collect(join(root, 'tests'), null, 'root'))
   corpus.sort((left, right) => left.file.localeCompare(right.file))
   const checkedModules = new Set(corpus.map(entry => entry.file))

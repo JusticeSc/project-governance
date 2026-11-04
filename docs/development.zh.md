@@ -26,8 +26,8 @@
 
 `templates/node-typescript/`是独立的pnpm工程，不是根npm workspace成员。它拥有自己的`package.json`、`pnpm-lock.yaml`、`pnpm-workspace.yaml`、TypeScript与构建配置、门禁脚本、开发Skills与文档；根`npm ci`和根workspace命令既不安装也不执行它。通过其自身owner——`templates/node-typescript/docs/architecture.md`、`docs/development.md`与`docs/testing.md`——修改，并在模板目录内通过Corepack运行其命令。不得把它加入根workspace、借外层`node_modules`解析其包或绕过其锁文件。
 
-`npm run check:template`是根验证入口：把作者文件导出到隔离目录，在其中执行`corepack pnpm install --frozen-lockfile --ignore-scripts`，构建产物平面，并驱动构建后CLI处理空源清单与非法参数。它证明取得与构建产物；模板完整门禁图是模板自身合同，由其自身CI工作流执行。根检查清单调用该入口，因此本地运行与产品CI共享同一定义，产品无需另一条重复工作流。`npm run export-template -- <new-output-directory>`即向其他项目交付副本所用的同一导出；它拒绝已存在目录，不复制依赖、构建产物或缓存，在安装后的Skill座中也可运行。模板固定pnpm 11.28.5及自身锁文件中的工具链版本，manifest声明Node `>=24 <25`，其CI工作流重复该声明；其他平台及Node组合在观察到之前仍只是CI声明。
+`npm run check:template`是根验证入口：把作者文件导出到隔离目录，在其中执行`corepack pnpm install --frozen-lockfile --ignore-scripts`，构建产物平面，并驱动构建后CLI处理空源清单与非法参数。它证明取得与构建产物；模板完整门禁图是模板自身合同，由其自身CI工作流执行。根检查清单调用该入口，因此本地运行与产品CI共享同一定义，产品无需另一条重复工作流。`npm run export-template -- <new-output-directory>`创建单独的参考副本；它拒绝已存在目录，不复制依赖、构建产物或缓存。模板固定pnpm 11.28.5及自身锁文件中的工具链版本，manifest声明Node `>=24 <25`，其CI工作流重复该声明；其他平台及Node组合在观察到之前仍只是CI声明。
 
 ## 安装与分发
 
-运行npm run install-skill -- <existing-repository>。安装座调用workspace命令前需要npm ci --ignore-scripts。根files白名单与锁文件由安装和打包载荷验证共用；包是本地workspace成员，不是各自已发布的依赖。白名单逐项列出模板作者文件，而不是整个`templates/`目录，因此作者源码、manifest、锁文件、配置、脚本与文档会随包分发，但不含已安装依赖、构建产物或缓存；安装器按文件复制，从不安装模板workspace。没有原位安装升级、注册表发布或自动CI激活。任何另行授权的发布先读[发布责任](../references/release.md)。
+按[README](../README.zh.md)将整个`skills/project-governance/`目录复制到目标的`.agents/skills/project-governance/`。Skill包含固定模板资产，安装无需npm workspace依赖；独立的产品workspace命令仍需要自身依赖。安装不准备模板workspace，也不激活CI。任何另行授权的发布先读[发布责任](../references/release.md)。

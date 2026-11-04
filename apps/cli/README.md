@@ -16,14 +16,9 @@ project-governance --help
 
 `check` defaults to the current directory and to the policy file `governance-checks.json` inside that repository. `--policy` takes a repository-relative path; an absolute path is accepted only when it still resolves inside the repository. The whole policy is validated before the first command runs, and commands then run in policy order with the repository root as their working directory. Exit code `0` means every configured check passed, `1` means a check returned a non-zero status or was terminated by a signal, and `2` means the policy, a path or an argument could not be validated — in that case nothing was executed.
 
-`install` copies exactly the files selected by the product root `package.json` files allowlist into an existing repository seat. It refuses an existing seat, a `.agents` or `.agents/skills` parent that is a symlink, junction or file, and a target that does not exist. A failed copy removes only the seat that this run created.
+`install` copies the self-contained Skill directory into an existing repository seat. It refuses an existing seat, a `.agents` or `.agents/skills` parent that is a symlink, junction or file, and a target that does not exist. On failure it removes only its own unchanged files and empty directories, reporting paths that cannot safely be removed.
 
-`install` prints the installed seat and the copied file count, and reminds you that the seat imports its workspace packages by package name. Prepare it yourself:
-
-```sh
-cd .agents/skills/project-governance
-npm ci --ignore-scripts
-```
+`install` places the Skill, not the project template. To install the template, follow the copied Skill's instructions; its installer runs offline without npm workspace dependencies.
 
 ## What It Never Does
 
@@ -34,7 +29,7 @@ npm ci --ignore-scripts
 
 ## Known Limitations and Deferred Work
 
-- The seat is not runnable until its workspace dependencies are prepared with `npm ci --ignore-scripts`; the package-name imports in this command require the npm workspace links. Distribution alone does not provide a lock file if the product root does not list one in its files allowlist.
+- Template installation is a separate step from installing the Skill seat; it requires Node.js >=22.19.0 and a filesystem and account that permit directory symlinks.
 - The command has no `init`, `status` or knowledge-query subcommands; those behaviours are not part of this product.
 - `check` executes the policy's command strings through the operating system shell with the current user's permissions. The policy author is trusted; sandboxing and command parsing are out of scope.
 - There is no automatic discovery of a policy outside the target repository and no check registry.

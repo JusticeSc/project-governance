@@ -1,7 +1,7 @@
 # Bilingual-pair consistency record for architecture.md (references/upgrade-guides.md#upgrade-guides.bilingual-pair): per heading
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
-#   node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/architecture.md
+#   node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write docs/architecture.md
 /architecture:
   en: 39127af4814eecda
   zh: bea98ff1f0c35827
@@ -12,8 +12,8 @@
   en: 49d0e014791b2b41
   zh: b35c1940c79f8d2b
 /architecture/document-and-state-ownership:
-  en: 8d6ebc113d58b7f2
-  zh: de96930a9c42c12b
+  en: f401cd83b0376479
+  zh: 71b8952a51873d33
 /architecture/change-boundaries:
   en: 3ec562817f675fb3
   zh: 5b280b9a7f3c9285

@@ -1,5 +1,7 @@
 # Agent Note 决策记录、格式与冻结归档
 
+本页命令中的 `<product-root>` 指单独取得的产品仓库根目录，不是复制后的轻量 Skill 座。需解析器或其他 workspace 依赖的产品命令须在该产品根按锁准备依赖；目标工程仍使用自己的配置和入口。
+
 当项目确有代码、测试和现有文档无法解释、后续仍需遵守的长期决策理由时，本节拥有其记录、生命周期与冻结历史；这是触发条件而非自由选配，但也不是每个非平凡修改都必须新写 Note。机械或局部修改，包括局部 UI 展示/交互，没有新长期决策时不写 Note。先按[标准](project-standard.md#governance-owners)复核既有决策 owner 是否满足唯一性、事实/理由分离及提出、实施、拒绝、取代、冻结和检查责任；满足才复用，否则原位补齐或迁移，不建立第二套竞争记录。
 
 **实现状态。** 本产品**不提供** Note 分类器、格式器与归档校验器的实现，也不提供任何封装它们的命令。以下义务是必须保留的规则：触发时必须按目标工具链实现等价检查，并实际证明正常、拒绝与恢复；**人工审阅不能替代原本必需的机械保证**。源仓的对应程序只作为行为规格与来源坐标保留（见文末），不构成本产品的可执行承诺。源实现采用 MIT 许可，见 Skill 根目录 `SOURCE-LICENSE.txt`。
@@ -43,9 +45,9 @@ Git 不保存空目录。目录准备必须在首次建立和每次干净 CI che
 若目标项目还有其他受管双语文档，把其真实根/文件纳入同一配置，不另建重复 owner。`.doc-gates/markdown-links.json` 则可声明 `{"roots":[".agents/notes"]}`；链接程序默认跳过归档出站检查但保留活跃→归档入站检查。活跃 Note 保留第3行唯一 Status、第4行空行，语言切换链接放在其后、首个 `## Problem` 之前。两侧修改后只对已确认的活跃配对重录，再做只读检查（路径换成正在修改的真实 Note，不创建示例占位记录）：
 
 ```bash
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs --write <活跃 Note 路径>
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-translation-pairing.mjs
-node .agents/skills/project-governance/packages/governance/documentation/src/verify-md-links.mjs
+node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs --write <活跃 Note 路径>
+node <product-root>/packages/governance/documentation/src/verify-translation-pairing.mjs
+node <product-root>/packages/governance/documentation/src/verify-md-links.mjs
 ```
 
 配对通过只证明结构和记录新鲜度；译文含义仍须评审。归档的整文件 Git blob 配对和 SHA-256 seal 由归档检查负责，不能拿活跃配对的逐节记录覆盖冻结侧车。
