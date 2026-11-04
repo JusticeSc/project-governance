@@ -2,8 +2,9 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { constants, copyFileSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { delimiter, dirname, isAbsolute, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { resolveCorepack } from './template-corepack.mjs'
 
 const source = fileURLToPath(new URL('../', import.meta.url))
 const npm = process.env.npm_execpath
@@ -156,7 +157,17 @@ try {
     ['.agents/skills/.gitignore', '*/agents/openai.yaml', ignoredPaths[0]],
     ['.github/review-ownership/.gitignore', '__pycache__/', ignoredPaths[1]],
   ])
-  run('packed product exports and verifies its independent template', process.execPath, [npm, 'run', 'check:template'], packedRoot, 0, 1_800_000)
+  // The packed product may be on another filesystem; reuse the source template's prepared store.
+  const templateNode = env.PROJECT_GOVERNANCE_TEMPLATE_NODE ?? process.execPath
+  assert(isAbsolute(templateNode), 'template Node executable must be an absolute path')
+  const templateEnv = { ...env, COREPACK_ENABLE_DOWNLOAD_PROMPT: '0', COREPACK_ENABLE_NETWORK: '0' }
+  const pathKey = Object.keys(templateEnv).find(key => key.toUpperCase() === 'PATH') ?? 'PATH'
+  templateEnv[pathKey] = [dirname(templateNode), templateEnv[pathKey] ?? ''].join(delimiter)
+  const corepack = resolveCorepack(templateNode, templateEnv)
+  const sourceStore = run('locate the source template pnpm store', corepack.command, [...corepack.prefix, 'pnpm', 'store', 'path'], join(source, 'templates', 'node-typescript'), 0, 180_000, templateEnv).stdout.trim()
+  assert(isAbsolute(sourceStore), 'pnpm store path must return an absolute path')
+  const packedTemplateEnv = { ...env, PNPM_CONFIG_STORE_DIR: sourceStore }
+  run('packed product exports and verifies its independent template', process.execPath, [npm, 'run', 'check:template'], packedRoot, 0, 1_800_000, packedTemplateEnv)
   run('linked pairing command refuses an undeclared consumer corpus', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-translation-pairing', '--repo', target, '--config', 'missing-pairs.json'], packedRoot, 2)
   run('linked subsystem command refuses missing consumer configuration', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-subsystem-pages', '--root', target, '--config', 'missing-subsystems.json'], packedRoot, 2)
   const guide = join(target, 'docs', 'upgrade-guide', 'v1.0.0', 'renamed-flag', 'guide.md')

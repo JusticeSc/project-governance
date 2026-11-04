@@ -9,7 +9,7 @@ English | [中文](CHANGELOG.zh.md)
 - The Node/TypeScript template starts without the unrelated plugin-market application or library. Workspace discovery, project policies, documentation and checks use the project's actual members. Persistence roots follow declared configuration, and union-shape changes still require compatibility review without session-specific exceptions. See the [migration guide](docs/upgrade-guide/v0.1.1/empty-template/guide.md).
 - The standalone Skill no longer requires an agent-specific skills symlink. Its `--add-missing` mode preserves existing content and reports a partial installation when conflicts still require reconciliation.
 - Template acquisition checks exercise an empty project, discovered app/library workspaces, artifact consumption and clean rebuild instead of the removed example.
-- The product check can select Node 24 for the template independently of the product runtime. CI prepares pinned pnpm and locked dependencies; the disposable workspace fixture may fetch registry metadata while Skill installation remains offline.
+- The product check can select Node 24 for the template independently of the product runtime. CI prepares pinned pnpm and locked dependencies; the exported copy uses the source template's prepared pnpm store even across drives. The disposable workspace fixture may fetch registry metadata while Skill installation remains offline.
 - Git-backed change-scope tests use the same bounded time allowance as comparable fixture tests.
 - The packed smoke copies the installed Skill as regular files, avoiding a Windows Node 22 `cpSync` crash on non-ASCII paths.
 

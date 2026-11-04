@@ -10,13 +10,13 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from 'node:fs'
 import { availableParallelism, tmpdir } from 'node:os'
 import { delimiter, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { exportTemplate } from './export-template.mjs'
+import { resolveCorepack } from './template-corepack.mjs'
 
 const templateNode = process.env.PROJECT_GOVERNANCE_TEMPLATE_NODE ?? process.execPath
 if (!isAbsolute(templateNode)) throw new Error('check-template: template Node executable must be an absolute path')
@@ -57,33 +57,6 @@ for (const name of [
 env.GIT_CEILING_DIRECTORIES = temporary
 env.COREPACK_ENABLE_DOWNLOAD_PROMPT = '0'
 env.COREPACK_ENABLE_NETWORK = '0'
-
-// Node ships Corepack as a sibling module of the Node executable; other installations expose a
-// `corepack` program on PATH. A JavaScript entry point is preferred because it is handed to Node
-// unchanged, while a .cmd/.bat shim would need a shell that reinterprets the fixed arguments.
-function resolveCorepack() {
-  const local = dirname(templateNode)
-  for (const candidate of [
-    join(local, 'node_modules', 'corepack', 'dist', 'corepack.js'),
-    join(local, '..', 'lib', 'node_modules', 'corepack', 'dist', 'corepack.js'),
-  ]) {
-    if (existsSync(candidate) && statSync(candidate).isFile()) return { command: templateNode, prefix: [candidate] }
-  }
-  const names = process.platform === 'win32'
-    ? (process.env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean).map(extension => `corepack${extension.toLowerCase()}`)
-    : ['corepack']
-  for (const directory of (env[pathKey] ?? '').split(delimiter)) {
-    if (directory === '') continue
-    for (const candidate of [join(directory, 'node_modules', 'corepack', 'dist', 'corepack.js'), ...names.map(name => join(directory, name))]) {
-      if (!existsSync(candidate) || !statSync(candidate).isFile()) continue
-      // A Windows command shim is never handed to a shell; its JavaScript module is used instead.
-      if (/\.(?:cmd|bat)$/iu.test(candidate)) continue
-      if (/\.js$/iu.test(candidate)) return { command: templateNode, prefix: [candidate] }
-      return { command: candidate, prefix: [] }
-    }
-  }
-  throw new Error('corepack was not found next to the Node executable or on PATH')
-}
 
 function run(label, command, args, cwd, expected = 0, capture = false) {
   console.log(`\n=== ${label} ===`)
@@ -183,10 +156,13 @@ try {
   assert.deepEqual(walk(occupied), [sentinel], 'a refused export must not add or remove files')
 
   // A fresh empty project builds the governance tooling without domain artifacts.
-  const corepack = resolveCorepack()
+  const corepack = resolveCorepack(templateNode, env)
+  // pnpm selects a store per filesystem by default; the exported project may be on a different drive.
+  const sourceStore = run('pnpm store path in template source', corepack.command, [...corepack.prefix, 'pnpm', 'store', 'path'], templateSource, 0, true).stdout.trim()
+  assert(isAbsolute(sourceStore), 'pnpm store path must return an absolute path')
   const pnpm = (args, expected = 0, capture = false, cwd = exported) =>
     run(`pnpm ${args.join(' ')}`, corepack.command, [...corepack.prefix, 'pnpm', ...args], cwd, expected, capture)
-  pnpm(['install', '--offline', '--frozen-lockfile', '--ignore-scripts'])
+  pnpm(['install', '--offline', '--frozen-lockfile', '--ignore-scripts', '--store-dir', sourceStore])
   pnpm(['run', 'build'])
   pnpm(['run', 'constraints'])
   // Keep the acquisition check's real Git and process fixtures within a bounded worker budget.
@@ -228,7 +204,7 @@ try {
   const applicationSource = Buffer.from('import { mean } from "@template-smoke/statistics"\nif (mean([3, 9, 12]) !== 8) throw new Error("workspace library result changed")\nconsole.log("application consumed library artifact")\n')
   writeFileSync(applicationEntry, applicationSource)
   // Updating the temporary workspace lock may require registry metadata not present in a fresh store.
-  pnpm(['install', '--no-frozen-lockfile', '--ignore-scripts'])
+  pnpm(['install', '--no-frozen-lockfile', '--ignore-scripts', '--store-dir', sourceStore])
   const omitted = pnpm(['run', 'build'], 1, true)
   assert.match(omitted.stderr + omitted.stdout, /workspace member missing.*references/u)
   const hostPath = join(exported, 'tsconfig.host.json')
