@@ -66,6 +66,26 @@ it('retains deleted tracked authors in the selection and refuses to silently omi
   expect(() => { copyWorkspaceFixture(source, checkout) }).toThrow('Cannot copy selected fixture author author.ts')
 })
 
+it.skipIf(process.platform !== 'win32')('uses the owning Git index through an available Windows short path', (test) => {
+  const source = mkdtempSync(join(tmpdir(), 'fixture long directory name - '))
+  const checkout = source + '-checkout'
+  onTestFinished(() => { removeFixtureSafely(checkout); removeFixtureSafely(source) })
+  const short = execFileSync('cmd.exe', ['/d', '/c', 'for %I in (.) do @echo %~sI'], { cwd: source, encoding: 'utf8' }).trim()
+  if (short.toLowerCase() === source.toLowerCase()) test.skip()
+  execFileSync('git', ['init', '--quiet', '--template=', source])
+  writeFileSync(join(source, 'author.ts'), 'author bytes\n')
+  execFileSync('git', ['add', 'author.ts'], { cwd: source })
+  rmSync(join(source, 'author.ts'))
+
+  expect(() => { copyWorkspaceFixture(short, checkout) }).toThrow('Cannot copy selected fixture author author.ts')
+
+  writeFileSync(join(source, '.gitignore'), '.env\n')
+  writeFileSync(join(source, '.env'), 'synthetic private data\n')
+  execFileSync('git', ['add', '--force', '.env'], { cwd: source })
+  expect(() => { copyWorkspaceFixture(short, checkout) }).toThrow(/tracked files are ignored: \.env/u)
+  expect(existsSync(join(checkout, '.env'))).toBe(false)
+}, 20_000)
+
 it.each(['leaf', 'ancestor'] as const)('rejects a selected %s link and cleans up without touching its target', (kind) => {
   const temporary = mkdtempSync(join(tmpdir(), 'dsh-fixture-links-'))
   const source = join(temporary, 'source')

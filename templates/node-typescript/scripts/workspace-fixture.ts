@@ -29,7 +29,7 @@ export function selectWorkspaceFixtureInputs(source: string): WorkspaceFixtureIn
   delete env.GIT_ALTERNATE_OBJECT_DIRECTORIES
   const top = spawnSync('git', ['-C', sourceRoot, 'rev-parse', '--show-toplevel'], { encoding: 'utf8', env })
   const canonical = (path: string): string => {
-    const resolved = realpathSync(path)
+    const resolved = realpathSync.native(path)
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved
   }
   const topPath = top.status === 0 ? top.stdout.trim() : ''

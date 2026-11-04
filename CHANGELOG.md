@@ -12,6 +12,7 @@ English | [中文](CHANGELOG.zh.md)
 - The product check can select Node 24 for the template independently of the product runtime. CI prepares pinned pnpm and locked dependencies; the exported copy uses the source template's prepared pnpm store even across drives. The disposable workspace fixture may fetch registry metadata while Skill installation remains offline.
 - Git-backed change-scope tests use the same bounded time allowance as comparable fixture tests.
 - The packed smoke copies the installed Skill as regular files, avoiding a Windows Node 22 `cpSync` crash on non-ASCII paths.
+- Git-backed template fixtures recognize their own index through Windows 8.3 paths, preserving refusal of deleted or ignored tracked authors.
 
 ## 0.1.1
 

@@ -12,6 +12,7 @@
 - 产品检查可为模板独立选择 Node 24。CI 预先准备固定版本的 pnpm 和锁定依赖；即使导出副本位于不同磁盘，也使用源模板已准备的 pnpm store。临时 workspace 夹具可以获取 registry 元数据，Skill 安装仍保持离线。
 - 使用 Git 夹具的 change-scope 测试采用与同类用例相同的有界超时。
 - 打包 smoke 将已安装 Skill 按普通文件复制，避免 Windows Node 22 的 `cpSync` 在非 ASCII 路径上崩溃。
+- 基于 Git 的模板夹具可通过 Windows 8.3 短路径识别自身索引，继续拒绝已删除或被忽略的已跟踪作者文件。
 
 ## 0.1.1
 

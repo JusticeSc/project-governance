@@ -13,7 +13,7 @@ function copyHygieneFixture(source: string, checkout: string, artifactDirectorie
   const sourceRoot = resolve(source)
   const top = spawnSync('git', ['-C', source, 'rev-parse', '--show-toplevel'], { encoding: 'utf8' })
   const canonical = (path: string): string => {
-    const resolved = realpathSync(path)
+    const resolved = realpathSync.native(path)
     return process.platform === 'win32' ? resolved.toLowerCase() : resolved
   }
   const ownRepository = top.status === 0 && canonical(top.stdout.replace(/\r?\n$/u, '')) === canonical(source)
@@ -146,6 +146,27 @@ describe('plain Node artifact consumers', () => {
     expect(add.status, add.stdout + add.stderr).toBe(0)
 
     expect(() => { copyHygieneFixture(source, checkout, []) }).toThrow(/tracked files.*ignored/iu)
+    expect(existsSync(join(checkout, '.env'))).toBe(false)
+  })
+
+  it.skipIf(process.platform !== 'win32')('refuses an ignored tracked author through an available Windows short path', (test) => {
+    const temporary = mkdtempSync(join(tmpdir(), 'built hygiene long directory name - '))
+    onTestFinished(() => { rmSync(temporary, { recursive: true, force: true }) })
+    const source = join(temporary, 'source directory long')
+    const checkout = join(temporary, 'checkout')
+    mkdirSync(source)
+    const alias = spawnSync('cmd.exe', ['/d', '/c', 'for %I in (.) do @echo %~sI'], { cwd: source, encoding: 'utf8' })
+    expect(alias.status, alias.stderr).toBe(0)
+    const short = alias.stdout.trim()
+    if (short.toLowerCase() === source.toLowerCase()) test.skip()
+    const init = spawnSync('git', ['init', '--quiet', '--template=', source], { encoding: 'utf8' })
+    expect(init.status, init.stdout + init.stderr).toBe(0)
+    writeFileSync(join(source, '.gitignore'), '.env\n')
+    writeFileSync(join(source, '.env'), 'synthetic private data\n')
+    const add = spawnSync('git', ['-C', source, 'add', '--force', '.env'], { encoding: 'utf8' })
+    expect(add.status, add.stdout + add.stderr).toBe(0)
+
+    expect(() => { copyHygieneFixture(short, checkout, []) }).toThrow(/tracked files.*ignored/iu)
     expect(existsSync(join(checkout, '.env'))).toBe(false)
   })
 
