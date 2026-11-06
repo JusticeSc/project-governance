@@ -5,6 +5,15 @@
 /changelog:
   en: c3a676a1a963e02b
   zh: d127776fcfeabf8c
+/changelog/unreleased:
+  en: c00d56f788b8b087
+  zh: 165db13c87e712b5
+/changelog/0-2-1:
+  en: 32176ab527ee55ed
+  zh: 32176ab527ee55ed
+/changelog/0-2-1/fixed:
+  en: 029efd662e430859
+  zh: 0651bc31c0d5b83c
 /changelog/0-2-0:
   en: 7b2f3e91f96a0ed5
   zh: 7b2f3e91f96a0ed5

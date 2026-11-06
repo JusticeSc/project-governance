@@ -12,9 +12,13 @@
 
 确定真实用户或消费方、输入、输出、失败行为，以及必须保持不变的文件或数据。选择满足职责的最小真实 owner：进程与 I/O 责任放在 `apps/<app>/` 应用，可复用行为放在 `packages/<group>/<package>/` 库。只有任务需要时才同时创建；库不依赖应用。各成员拥有源码、测试、manifest 与文档。库参见[新增包](adding-a-package.zh.md)。
 
-在 `tsconfig.host.json` 登记每个真实成员，并配置其真实 workspace 依赖、源码别名、产品用途分类及适用的启动器和 bin 策略。workspace 模式已覆盖 `apps/*` 与 `packages/*/*`；不需要虚构包。设置真实项目身份与仓库元数据，但不改变许可证或版本义务。新分组拥有双语 README 和导航项；其子系统页面或有理由的无页面分类应反映真实职责。行为变化时同步更新[架构](../architecture.zh.md)、根 README 与相关 owner 文档。
+实际 manifest 与源码配置已存在后，遵循 [TypeScript 布局与引用归属](../development.zh.md#typescript-project-layout)运行 `pnpm run gen-host-references`。配置真实 workspace 依赖、源码别名、产品用途分类及适用的启动器和 bin 策略。workspace 模式已覆盖 `apps/*` 与 `packages/*/*`；不需要虚构包。设置真实项目身份与仓库元数据，但不改变许可证或版本义务。新分组拥有双语 README 和导航项；其子系统页面或有理由的无页面分类应反映真实职责。行为变化时同步更新[架构](../architecture.zh.md)、根 README 与相关 owner 文档。
 
-多成员项目必须配置 `typedImportProbe`，指向真实跨包消费方测试与非 thenable 运行时导出；符号缺失或无法解析不能证明类型感知 lint。只有不存在多个成员时才可不配置。每个真实源码和测试均遵循[编译器与 lint 接线](../development.zh.md#typescript-project-layout)。不能为通过检查虚构依赖或豁免真实源码。工具协议标识与钩子归属标记保持稳定。
+Node 依赖检查将应用的 `src/index.ts` 与 `src/bin.ts` 作为运行时入口。至少提供其中一个；两者同时存在时会跟踪两者的依赖。
+
+如果应用引入 CLI 启动器，应实现其真实帮助，并遵循 [CLI 帮助参考](../cli-help.zh.md#updating-help)分类启动器、声明帮助命令。
+
+多成员项目必须配置 `typedImportProbe`，指向真实跨包消费方测试与非 thenable 运行时导出；符号缺失或无法解析不能证明类型感知 lint。只有不存在多个成员时才可不配置。每个真实源码和测试均遵循[编译器与 lint 接线](../development.zh.md#typescript-project-layout)；加入实际 TypeScript 测试后，按成员类型使用 `pnpm run gen-test-tsconfig apps/<app>` 或 `pnpm run gen-test-tsconfig packages/<group>/<package>`。不能为通过检查虚构依赖或豁免真实源码。工具协议标识与钩子归属标记保持稳定。
 
 <a id="3-declare-actual-persistence"></a>
 ## 3. 声明真实持久化

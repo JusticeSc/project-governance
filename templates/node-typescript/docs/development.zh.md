@@ -46,10 +46,11 @@ pnpm 使用严格符号链接布局，未声明的依赖会失败，而不会通
 
 ### 日常工作流
 
-1. 阅读所属领域的文档：[架构](architecture.zh.md)说明 workspace 边界，包或应用 README 说明其合同，[防御性模式](defensive-patterns/README.zh.md)说明生成与输出规则，[文档标准](AGENTS.md)说明文字要求。
+1. 从当前任务或其既有 owner 确定请求行为、验收条件和需要保持的内容。阅读[架构](architecture.zh.md)、所属包或应用合同，以及适用的[防御性模式](defensive-patterns/README.zh.md)和[文档标准](AGENTS.md)。
 2. 一次只做一个行为变更，并在同一变更中更新其消费方、测试与文档。
-3. 运行覆盖该变更的最小检查（见[验证变更](#verify-a-change)）。
-4. 请求审查前，运行缺失的证据一次，并报告实际运行过的命令。
+3. 通过 [dsh-pre-push-checks](../.agents/skills/dsh-pre-push-checks/SKILL.md)选择缺失证据，运行覆盖变更的最小检查（见[验证变更](#verify-a-change)）。本地任务使用已核实的本地基线，不要求远端或推送。
+4. 使用 [dsh-code-review](../.agents/skills/dsh-code-review/SKILL.md)审查实际变更，包括仅本地工作。从原需求反查遗漏，从实际变更检查无依据新增；报告实际取得的证据。
+5. 解决阻断发现，或说明缺失前提及安全的当前状态。修正后只补受影响的证据，并重新确认审查发现已解决，再报告完成；保留原始失败及其处置。
 
 ## 贡献者参考
 
@@ -73,13 +74,25 @@ scripts/                            build, gate, and documentation scripts
 | 文件 | 职责 | 构成程序？ |
 |---|---|---|
 | `tsconfig.json` | 解决方案入口；扩展共享基础选项，自身不包含文件，并显式引用 `tsconfig.host.json`。 | 否 |
-| `tsconfig.host.json` | Node 聚合：workspace 包引用、应用与包的测试、脚本与测试配置。 | 是 |
+| `tsconfig.host.json` | Node 聚合：实际 workspace 成员引用、应用与包的测试、脚本与测试配置。 | 是 |
 | `tsconfig.base.json` | 共享编译选项与源码 `paths` 映射。Vitest 将 vite-tsconfig-paths 指向它。 | 否 |
 | `tsconfig.node.base.json` | 聚合扩展的 Node 专用编译设置。 | 否 |
 | `packages/<group>/<package>/tsconfig.json` | 扩展 `tsconfig.base.json`，设置 `rootDir: src` 与 `outDir: lib/types`，包含 `src`，并引用 workspace 依赖。 | 是 |
 | `apps/<app>/tsconfig.json` | 应用项目；存在时引用其真实 workspace 依赖。 | 是 |
 
 每个实际 workspace 成员及其源码／测试文件必须进入编译图；build 拒绝遗漏。业务源码与测试必须由最近的 `tsconfig.json` 收纳才能进行类型感知 lint。本绑定支持 `.ts` 和 `.tsx`；未接线的 `.js`、`.mjs`、`.cjs`、`.mts` 或 `.cts` 会失败，不会冒充已 lint。仅有应用的项目仍编译应用并运行相关检查；只有存在库时才进行库打包。
+
+实际成员 manifest 及其源码 `tsconfig.json` 配置已存在，且配置是普通文件后，从根目录运行 `pnpm run gen-host-references`。命令按现有 `readWorkspaceManifests` 规则发现成员，为每个非根成员派生 host 引用。它不创建 manifest 或源码配置，也不选择依赖；每个成员的源码项目仍须引用其真实编译依赖。
+
+命令只同步 `tsconfig.host.json` 中 `// BEGIN generated workspace references — pnpm run gen-host-references` 与 `// END generated workspace references` 之间的生成区。两个标记须各占一行，位于根 `references` 数组中完整引用之间。生成区外的字节保持不变，包括手写引用、元数据、编译选项与注释。手写的目录引用与显式 `tsconfig.json` 引用若解析到同一成员配置，视为等价，不重复生成。生成引用按规范化成员路径排序；退出的成员只从生成区移除，不删除手写引用。
+
+接管前，命令验证按同一渲染规则清空所有生成引用后，`references` 数组仍合法，包括由生成区为手写项提供必要分隔符的情况。如果会留下区外首逗号或重复逗号，即使当前仍有成员也拒绝；此规则适用于数组中的任何位置。先明确把有问题的分隔逗号移入生成区，再运行命令；命令不会擅自移动手写区字节。
+
+`pnpm run gen-host-references --check` 只读，生成区过期时以非零状态退出；正常重复运行具有幂等性。标记缺失、重复、颠倒或错位、JSONC 无效、引用不具备唯一非空字符串 `path`、成员源码配置缺失，以及检查时已重定向的目标或成员路径，均导致拒绝操作，host 配置保持不变。路径检查不能防止目录被并发替换；仅在可信且没有并发结构变动的 workspace 中使用。
+
+旧 host 配置没有标记时，先审查引用归属，将手写项保留在生成区外，把应由命令维护的引用放入位置正确的标记之间。不要覆盖整份配置。然后运行 `pnpm run gen-host-references` 与实际构建。
+
+向 workspace 成员加入实际 TypeScript 测试后，运行 `pnpm run gen-test-tsconfig apps/<app>` 或 `pnpm run gen-test-tsconfig packages/<group>/<package>` 创建测试项目，而不是 host 源码引用。命令要求成员已声明、源码 tsconfig 与测试已存在，拒绝检查时已重定向的目录，且绝不覆盖已有测试配置。路径检查不能防止目录被并发替换；仅在可信且没有并发结构变动的 workspace 中运行。有定制测试项目需求时应审查，不要替换已有配置。
 
 `tsconfig.base.json` 拥有把已声明 workspace 包名解析到 `src` 的 `paths` 映射，使源码测试与源码启动器保持在源码面：
 
@@ -116,7 +129,7 @@ scripts/                            build, gate, and documentation scripts
 
 - 行为：用聚焦的 spec 运行 `pnpm run test`。新增的包运行时行需要行为测试；覆盖率门禁要求 `packages/*/*/src` 运行时实现逐文件语句、分支、函数与行覆盖率均为 100%，且不设豁免。应用行为由 spec、真实 CLI 接受/拒绝与构建产物 smoke 证明，而不是应用级 V8 阈值；仅类型声明不承载运行时义务。
 - 覆盖率：`pnpm run test:coverage`，或使用拆分门禁 `pnpm run test:coverage:partitioned`。
-- 类型：`pnpm run typecheck`；当变更触及生成的声明时使用 `build:check`／`build`。
+- 类型：迭代时使用 `pnpm run typecheck`。声明 TypeScript 工作完成前，在最近一次 `build:artifacts` 后运行 `build:check`，或运行 `pnpm run build`，仅修改测试或脚本时也一样。
 - 文字：`pnpm run doc-sync` 包含 TypeScript 示例编译；`pnpm run doc-typecheck` 只选择该编译器。`pnpm run test:docs` 保留无需构建的文档检查子集，不编译示例（[范围](testing.zh.md#documentation-compilation)）。
 - 包元数据：先运行 `pnpm run build`，再运行 `pnpm run hygiene`（publint、workspace 约束、包与依赖检查）。Hygiene 检查现有构建产物，不会自行构建。
 - 已发布路径：`pnpm run build`，然后在真实构建入口及打包消费方存在时验证它们。

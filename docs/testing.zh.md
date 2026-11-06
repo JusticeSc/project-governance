@@ -24,7 +24,9 @@ smoke使用首次npm ci已经取得的依赖准备消费者；其模板夹具可
 
 ## 模板验证
 
-模板检查只导出白名单文件、按锁文件安装、构建空 workspace 并运行其测试套件；只在临时副本新增库和消费该库的应用，证明缺少 host 引用会被拒绝，运行两者产物并验证库对非法输入的拒绝，最后清理再构建。Node 24、包管理器和初始离线缓存是前提；workspace 夹具更新临时锁文件时可能需要访问 registry。模板的完整门禁图与 CI 工作流独立；其[测试指南](../templates/node-typescript/docs/testing.md)拥有对应谓词与证据边界。
+`npm run check:template` 只导出白名单文件、按锁文件安装并初始化隔离 Git 索引。它验证空业务 workspace 通过 unknown 断言命令，新增应用或库中的违规断言分别被拒绝，精确移除后恢复接受；再构建空 workspace 并运行其测试套件。检查只在临时副本新增库和消费该库的应用，证明缺少 host 引用会被拒绝，再通过 `pnpm run gen-host-references` 恢复引用，并通过 `pnpm run gen-host-references --check` 验证新鲜度。它在构建与消费两者产物前运行已有源码别名生成器 `pnpm run gen-tsconfig-paths`，验证库对非法输入的拒绝，最后清理再构建。Node 24、Git、包管理器和初始离线缓存是前提；workspace 夹具更新临时锁文件时可能需要访问 registry。模板的完整门禁图与 CI 工作流独立；其[测试指南](../templates/node-typescript/docs/testing.md)拥有对应谓词与证据边界。
+
+应用夹具还通过依赖检查命令验证两种受支持的源码入口，包括分别拒绝两个入口中未声明的运行时依赖以及恢复后的接受。
 
 模板结果只建立其谓词。它不证明B阶段对后续开发的治理效果、C阶段Agent复现或独立采用。模板的Linux覆盖通过模板自身CI工作流声明，不由本地Windows Node 24运行观察得到；远端执行、必需检查与分支保护需各自证据。
 

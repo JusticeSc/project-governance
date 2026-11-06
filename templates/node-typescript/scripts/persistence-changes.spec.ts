@@ -80,6 +80,16 @@ function baseline(root: string): void {
   expect(command(root, ['--baseline', BASE, '--prose', 'prose.json']).ok).toBe(true)
 }
 
+function fixtureWithVersionedAndUnversionedRoots(): string {
+  const root = fixture()
+  put(root, 'persistence.config.json', JSON.stringify({ roots: [
+    { id: 'archive', owner: OWNER, type: 'Archive', versionField: 'schemaVersion' },
+    { id: 'settings', owner: OWNER, type: 'Settings' },
+  ] }))
+  baseline(root)
+  return root
+}
+
 function change(root: string, from: string, to: string): void {
   const path = join(root, OWNER)
   const source = readFileSync(path, 'utf8')
@@ -135,11 +145,9 @@ describe('declared project persistence history', () => {
     expect(review.roots[0]?.changes).toContainEqual(expect.objectContaining({
       kind: 'union-variants-changed', requiresCompatibilityReview: true,
     }))
-    expect(review.evidence).toContainEqual(expect.objectContaining({
-      kind: 'kind-added', locations: expect.arrayContaining([
-        expect.objectContaining({ root: 'archive', path: 'archive.storage[kind="registry"]' }),
-      ]),
-    }))
+    expect(review.evidence.some(evidence => evidence.kind === 'kind-added'
+      && evidence.locations.some(location => location.root === 'archive'
+        && location.path === 'archive.storage[kind="registry"]'))).toBe(true)
   })
 
   it('requires review when an ordinary persisted union variant changes shape', () => {
@@ -299,12 +307,7 @@ describe('declared project persistence history', () => {
   })
 
   it('requires separate decisions and independent version transitions for multiple roots', () => {
-    const root = fixture()
-    put(root, 'persistence.config.json', JSON.stringify({ roots: [
-      { id: 'archive', owner: OWNER, type: 'Archive', versionField: 'schemaVersion' },
-      { id: 'settings', owner: OWNER, type: 'Settings' },
-    ] }))
-    baseline(root)
+    const root = fixtureWithVersionedAndUnversionedRoots()
     change(root, 'readonly schemaVersion: 1', 'readonly schemaVersion: 2')
     change(root, 'readonly enabled: boolean', 'readonly enabled: string')
     expect(command(root, ['--record', NEXT, '--decision', 'archive=version-bump', '--prose', 'prose.json']).code).toBe('decision-required')
@@ -328,12 +331,7 @@ describe('declared project persistence history', () => {
   })
 
   it('freezes versioned and unversioned roots without sharing a global version', () => {
-    const root = fixture()
-    put(root, 'persistence.config.json', JSON.stringify({ roots: [
-      { id: 'archive', owner: OWNER, type: 'Archive', versionField: 'schemaVersion' },
-      { id: 'settings', owner: OWNER, type: 'Settings' },
-    ] }))
-    baseline(root)
+    const root = fixtureWithVersionedAndUnversionedRoots()
     const history = loadPersistenceHistory(root)
     const schema = current(root)
     const archive = createPersistenceFinalizationCheckpoint(history, schema, 'archive')

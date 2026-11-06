@@ -44,10 +44,11 @@ Local setup is complete when hooks are installed and `pnpm run typecheck` succee
 
 ### Daily workflow
 
-1. Read the owning document for the area: [architecture](architecture.md) for workspace boundaries, the package or app README for its contract, [defensive patterns](defensive-patterns/README.md) for generation and output rules, and [the documentation standard](AGENTS.md) for prose.
-2. Make one behavior change and update its consumers, tests, and documents in the same change.
-3. Run the smallest checks that cover the change (see [Verify a change](#verify-a-change)).
-4. Before requesting review, run the missing evidence once and report the commands actually run.
+1. Establish the requested behavior, acceptance conditions and content to preserve from the current task or its existing owner. Read [architecture](architecture.md), the package or app contract, and the applicable [defensive patterns](defensive-patterns/README.md) and [documentation standard](AGENTS.md).
+2. Make one behavior change and update its consumers, tests and documents in the same change.
+3. Select missing evidence through [dsh-pre-push-checks](../.agents/skills/dsh-pre-push-checks/SKILL.md), then run the smallest checks that cover the change (see [Verify a change](#verify-a-change)). A local task uses its verified local baseline; no remote or push is required.
+4. Have the actual change reviewed with [dsh-code-review](../.agents/skills/dsh-code-review/SKILL.md), including local-only work. Review the original requirements for omissions and the actual changes for unrequested additions; report the evidence actually obtained.
+5. Resolve blocking findings or report the unmet prerequisite and safe current state. After corrections, rerun only affected evidence and reconfirm the review finding before reporting completion; preserve the original failure and its disposition.
 
 ## Contributor reference
 
@@ -70,13 +71,25 @@ A new package lives at `packages/<group>/<package>/` and reuses an existing grou
 | File | Role | Forms a program? |
 |---|---|---|
 | `tsconfig.json` | Solution entry; extends shared base options, has no own files, and explicitly references `tsconfig.host.json`. | No |
-| `tsconfig.host.json` | Node aggregate: workspace package references, app and package tests, scripts, and test configs. | Yes |
+| `tsconfig.host.json` | Node aggregate: actual workspace member references, app and package tests, scripts, and test configs. | Yes |
 | `tsconfig.base.json` | Shared compiler options and the source `paths` map. Vitest points vite-tsconfig-paths at it. | No |
 | `tsconfig.node.base.json` | Node-specific compiler settings extended by the aggregate. | No |
 | `packages/<group>/<package>/tsconfig.json` | Extends `tsconfig.base.json`, sets `rootDir: src` and `outDir: lib/types`, includes `src`, and references workspace dependencies. | Yes |
 | `apps/<app>/tsconfig.json` | App project, referencing its actual workspace dependencies when present. | Yes |
 
 Every actual workspace member and its source/test files must belong to the compiler graph; build rejects omissions. Business source and tests must be included by their nearest `tsconfig.json` for typed lint. This binding supports `.ts` and `.tsx`; unbound `.js`, `.mjs`, `.cjs`, `.mts`, or `.cts` fail rather than appearing linted. An app-only project still compiles its application and runs relevant checks; library bundling applies only when libraries exist.
+
+After the real member manifests and their regular source `tsconfig.json` files exist, run `pnpm run gen-host-references` from the root. It derives host references for every non-root member discovered by the existing `readWorkspaceManifests` rules. It does not create manifests or source configs or choose dependencies; each member's source project still references its actual compilation dependencies.
+
+The command synchronizes only the region between `// BEGIN generated workspace references — pnpm run gen-host-references` and `// END generated workspace references` in `tsconfig.host.json`. Each marker occupies its own line inside the root `references` array, between complete references. Bytes outside that region remain unchanged, including authored references, metadata, compiler options and comments. A handwritten directory reference and an explicit `tsconfig.json` reference resolving to the same member config are equivalent and are not duplicated. Generated references are sorted by normalized member path; departing members are removed only from the generated region, never from authored references.
+
+Before takeover, the command verifies that rendering the region with no generated references still leaves a valid `references` array, including any separator the region must provide between authored entries. Layouts that would leave a leading or doubled comma outside the region are refused even while members remain; this applies at any position in the array. Explicitly move the offending separator comma inside the generated region, then rerun the command; it never moves authored bytes for you.
+
+`pnpm run gen-host-references --check` is read-only and exits nonzero when the generated region is stale; a normal rerun is idempotent. Missing, duplicate, reversed or misplaced markers, invalid JSONC, references without exactly one nonempty string `path`, missing member source configs, and target or member paths already redirected at inspection reject the operation without changing the host config. Path checks do not guard against concurrent directory replacement; use a trusted workspace without concurrent structural changes.
+
+For a legacy host config without markers, first review reference ownership, preserve authored entries outside the generated region, and place the references the command should maintain between correctly placed markers. Do not overwrite the full config. Then run `pnpm run gen-host-references` and the actual build.
+
+After adding real TypeScript tests to a workspace member, run `pnpm run gen-test-tsconfig apps/<app>` or `pnpm run gen-test-tsconfig packages/<group>/<package>` to create its test project, not host source references. The command requires an existing declared member, source tsconfig and tests, refuses directories already redirected at inspection, and never overwrites an existing test config. Its path checks do not guard against concurrent directory replacement; run it in a trusted workspace without concurrent structural changes. Review custom test-project needs rather than replacing an existing config.
 
 `tsconfig.base.json` owns the `paths` map that resolves declared workspace package names to `src`. This keeps source tests and source launchers on the source plane:
 
@@ -111,7 +124,7 @@ Match evidence to the surface; do not default to the complete suite for a commit
 
 - Behavior: `pnpm run test` with a focused spec. A new package runtime line needs a behavior test; the coverage gate requires per-file 100% statements, branches, functions, and lines for `packages/*/*/src` runtime implementation, with no exemptions. App behavior is proven by its specs, real CLI acceptance/refusal, and the built-app smoke rather than an app V8 threshold; type-only declarations carry no runtime obligation.
 - Coverage: `pnpm run test:coverage`, or `pnpm run test:coverage:partitioned` for the split gate.
-- Types: `pnpm run typecheck`, or `build:check`/`build` when the change touches emitted declarations.
+- Types: use `pnpm run typecheck` while iterating. Before reporting TypeScript work complete, run `build:check` after the latest `build:artifacts`, or run `pnpm run build`, including changes confined to tests or scripts.
 - Prose: `pnpm run doc-sync` includes compilation of TypeScript examples; `pnpm run doc-typecheck` selects that compiler alone. `pnpm run test:docs` retains the build-free documentation subset and does not compile examples ([scope](testing.md#documentation-compilation)).
 - Package metadata: run `pnpm run build` before `pnpm run hygiene` (publint, workspace constraints, package and dependency checks). Hygiene checks the existing artifacts; it does not build them.
 - Published paths: `pnpm run build`, then exercise real built entries and packed consumers when they exist.

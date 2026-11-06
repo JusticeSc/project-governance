@@ -1,11 +1,11 @@
 ---
 name: dsh-pre-push-checks
-description: Use before pushing, force-pushing, marking ready for review, or claiming checks pass on a branch, and immediately after a history rewrite publishes branches, to select the smallest tests and checks that cover the outgoing diff without reflexively running the full repository suite.
+description: Use before reporting development complete, marking ready for review, pushing or force-pushing, and immediately after a history rewrite publishes branches, to select the smallest checks that cover the actual change without reflexively running the full repository suite.
 ---
 
 # Pre-push checks
 
-Use this skill to run relevant local evidence once before a push. Git hooks are intentionally narrow: `pre-commit` verifies staged translation records and archived notes, runs staged lint without type-aware rules, and checks whitespace; `pre-push` runs only `pnpm run typecheck`. Read the actual CI workflows for exhaustive scope and supported environments; two Ubuntu jobs are not a platform matrix. OS-owned semantics still need relevant tests even with single-platform CI, and an unrun platform remains unverified. Nothing here proves remote enforcement.
+Use this skill to select missing local evidence once before reporting development complete, requesting review or pushing. Git hooks are intentionally narrow: `pre-commit` verifies staged translation records and archived notes, runs staged lint without type-aware rules, and checks whitespace; `pre-push` runs only `pnpm run typecheck`. Read the actual CI workflows for exhaustive scope and supported environments; two Ubuntu jobs are not a platform matrix. OS-owned semantics still need relevant tests even with single-platform CI, and an unrun platform remains unverified. Nothing here proves remote enforcement.
 
 ## Inspect the outgoing change
 
@@ -16,13 +16,13 @@ git status --short --branch
 git rev-parse --show-toplevel
 ```
 
-2. Verify the live base or stack parent, fetch that ref, and inspect the complete scope against it.
+2. Establish the change's baseline and inspect the complete scope. For local-only work, use the verified local commit preceding the task; `HEAD` is suitable only when the task's changes are still uncommitted against it. For a pull request or stack, verify and fetch its live base or stack parent. Missing history or permission is a reported prerequisite, not a reason to invent a baseline or access a remote.
 
 ```sh
 pnpm --silent run change-scope --base <verified-base-ref>
 ```
 
-The command never guesses or fetches a base. Supply the ref verified from current remote or stack state; use `--head <ref>` when inspecting a commit other than `HEAD`. Its JSON records committed paths relative to the resolved merge base, while staged, unstaged, and untracked paths describe the current worktree. After merging a changed base, rerun the report, reassess what the combined scope can affect, and rerun only checks invalidated by the merge.
+The command never guesses or fetches a base. Supply the explicitly verified local baseline or live PR/stack base; use `--head <ref>` when inspecting a commit other than `HEAD`. Its JSON records committed paths relative to the resolved merge base, while staged, unstaged, and untracked paths describe the current worktree. Local review does not require a remote or a new commit. After merging a changed base, rerun the report, reassess what the combined scope can affect, and rerun only checks invalidated by the merge.
 
 ## Select relevant evidence
 
@@ -79,7 +79,7 @@ If post-sync evidence fails, leave the lease-protected published heads in place,
 
 ## Handle failures
 
-If a relevant check fails before an ordinary push, stop and fix or explain the blocker. Do not push and hope CI differs. For the post-sync exception, block merging and follow the [post-sync repair procedure](#post-sync-validation).
+If required evidence fails or a blocking review finding remains unresolved, do not report development complete or make an ordinary push. Fix the defect or explain the missing prerequisite and safe current state; after a correction, rerun only affected evidence and have the review finding reconfirmed. Do not push and hope CI differs. For the post-sync exception, block merging and follow the [post-sync repair procedure](#post-sync-validation).
 
 If a failure looks environment-specific, prove it:
 

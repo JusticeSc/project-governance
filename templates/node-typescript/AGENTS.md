@@ -79,7 +79,7 @@ Never commit credentials or a populated `.env`. Introduce and document credentia
 - **Tests live under the owning package's `tests/`,** never `src/__tests__/`; `src/types.ts` contains types only.
 - **Package tsconfigs** extend `tsconfig.base.json`, set `rootDir: src` and `outDir: lib/types`, and reference workspace dependencies. The root `tsconfig.json` is the aggregate solution.
 - **TODO markers:** `FIXME` (release blocker), `TODO` (soon), `XXX` (someday), by urgency.
-- **Review:** follow [.github/review-ownership/README.md](.github/review-ownership/README.md) for approval ownership. It is inherited configuration; this checkout has not exercised it against a remote.
+- **Review local changes and PRs** with [dsh-code-review](.agents/skills/dsh-code-review/SKILL.md), using the original request and actual change scope. Select missing evidence through [dsh-pre-push-checks](.agents/skills/dsh-pre-push-checks/SKILL.md). PR approval ownership separately follows [.github/review-ownership/README.md](.github/review-ownership/README.md); inherited configuration does not prove remote enforcement.
 
 ## Defensive patterns
 

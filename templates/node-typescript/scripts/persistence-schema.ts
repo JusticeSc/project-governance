@@ -72,7 +72,7 @@ export function extractPersistenceSchema(root: string): PersistenceSchemaInvento
     ids.add(item.id)
     owners.add(binding)
     roots.push({ id: item.id, owner: item.owner, type: item.type, filename,
-      ...(item.versionField === undefined ? {} : { versionField: item.versionField as string }) })
+      ...(item.versionField === undefined ? {} : { versionField: item.versionField }) })
   }
   roots.sort((left, right) => compare(left.id, right.id))
   const configPath = resolve(root, 'tsconfig.base.json')

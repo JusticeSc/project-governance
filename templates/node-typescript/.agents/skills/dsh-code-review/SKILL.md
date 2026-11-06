@@ -1,13 +1,13 @@
 ---
 name: dsh-code-review
-description: Use when reviewing a pull request in this repository — orients the reviewer to the standing conventions, defensive patterns, documentation rules, and quality gates, and to the review-specific checks that code alone cannot show.
+description: Use when reviewing a local development change or pull request — compare the original requirements and actual scope with owning contracts, standing conventions, defensive patterns, documentation and relevant evidence.
 ---
 
 # Reviewing a change
 
-**This skill is guidance, not a complete checklist.** Verify and fetch the change's live base and exact head, then run `pnpm --silent run change-scope --base <verified-base-ref> --head <verified-head-ref>` before reading the diff and enough surrounding code to understand the design. The report identifies paths and dirty layers but does not replace semantic review. Re-establish the base and rerun it after a retarget or merge. Prioritize correctness, security, and broken required behavior over style; a short review with one substantiated blocker is better than a list of nits.
+**This skill is guidance, not a complete checklist.** Establish the original request, acceptance conditions and behavior to preserve from the current conversation or existing requirement owner; a small task needs no new requirements file. For local work, verify the commit preceding the task and the intended head; include staged, unstaged and untracked changes. For a PR, verify and fetch the live base and exact head. Run `pnpm --silent run change-scope --base <verified-base-ref> --head <verified-head-ref>` before reading the diff and enough surrounding code to understand the design. The report identifies paths and dirty layers but does not replace semantic review. Re-establish the base after a retarget or merge. Prioritize correctness, security and broken required behavior over style; a short review with one substantiated blocker is better than a list of nits.
 
-**Read the requirements before judging the diff.** Map the changed paths to the artifacts below, open each owning page from [Sources of truth](#sources-of-truth), and only then read the diff against those requirements. Judging a diff against memory of the rules is how a violation passes review.
+**Read the requirements before judging the diff.** First trace each requested behavior and preservation condition to its implementation and evidence, including requirements with no changed path. Then map every actual change to its owning contract and request: identify omissions and unrequested additions independently. Open each relevant owning page from [Sources of truth](#sources-of-truth) and review both interface sides. Neither a path report nor a green gate establishes necessity or completeness.
 
 ## Sources of truth
 
@@ -53,4 +53,4 @@ description: Use when reviewing a pull request in this repository — orients th
 
 ## Reporting findings
 
-State the defect, location, impact, and evidence. Place a localized defect inline on the tightest relevant diff range; use a PR-level comment for cross-cutting architecture, scope, or review-wide synthesis. Separate blockers from suggestions and omit issues already enforced by a green gate. Use the existing review thread for replies. When receiving review, verify each claim and fix or rebut it on technical grounds without performative agreement.
+State the defect, location, impact and evidence. For a PR, place localized defects inline and cross-cutting findings in its existing review thread; for local work, report them with the task and exact scope. Separate blockers from suggestions and omit issues already enforced by a green gate. When receiving review, verify each claim and fix or rebut it on technical grounds. Preserve the finding and disposition; after an accepted fix, the reviewer reconfirms the affected requirement and evidence before the change is reported complete.

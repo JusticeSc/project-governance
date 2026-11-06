@@ -54,6 +54,10 @@ for (const name of [
 ]) {
   delete env[name]
 }
+// An ambient Git ignore file must not hide temporary source or negative probes.
+env.GIT_CONFIG_GLOBAL = join(temporary, 'isolated.gitconfig')
+writeFileSync(env.GIT_CONFIG_GLOBAL, '')
+env.GIT_CONFIG_NOSYSTEM = '1'
 env.GIT_CEILING_DIRECTORIES = temporary
 env.COREPACK_ENABLE_DOWNLOAD_PROMPT = '0'
 env.COREPACK_ENABLE_NETWORK = '0'
@@ -163,6 +167,19 @@ try {
   const pnpm = (args, expected = 0, capture = false, cwd = exported) =>
     run(`pnpm ${args.join(' ')}`, corepack.command, [...corepack.prefix, 'pnpm', ...args], cwd, expected, capture)
   pnpm(['install', '--offline', '--frozen-lockfile', '--ignore-scripts', '--store-dir', sourceStore])
+  run('initialize isolated template index', 'git', ['init', '--quiet', '--template='], exported)
+  run('stage original template inputs', 'git', ['add', '--all'], exported)
+  pnpm(['run', 'verify-no-unknown-casts'])
+  for (const path of ['apps/cast-probe/src/index.ts', 'packages/cast-probe/library/src/index.ts']) {
+    const probe = join(exported, ...path.split('/'))
+    mkdirSync(dirname(probe), { recursive: true })
+    writeFileSync(probe, 'export const probe = \"value\" as unknown\n')
+    const rejected = pnpm(['run', 'verify-no-unknown-casts'], 1, true)
+    assert.match(rejected.stderr, /new assertions to unknown are forbidden/u)
+    assert(rejected.stderr.includes(`${path}:1`), `the cast check did not report ${path}`)
+    rmSync(join(exported, ...path.split('/').slice(0, 2)), { recursive: true })
+    pnpm(['run', 'verify-no-unknown-casts'])
+  }
   pnpm(['run', 'build'])
   pnpm(['run', 'constraints'])
   // Keep the acquisition check's real Git and process fixtures within a bounded worker budget.
@@ -207,12 +224,34 @@ try {
   pnpm(['install', '--no-frozen-lockfile', '--ignore-scripts', '--store-dir', sourceStore])
   const omitted = pnpm(['run', 'build'], 1, true)
   assert.match(omitted.stderr + omitted.stdout, /workspace member missing.*references/u)
-  const hostPath = join(exported, 'tsconfig.host.json')
-  const host = JSON.parse(readFileSync(hostPath, 'utf8'))
-  host.references = [{ path: `./${member}` }, { path: `./${application}` }]
-  writeFileSync(hostPath, JSON.stringify(host, null, 2) + '\n')
+  pnpm(['run', 'gen-host-references'])
+  pnpm(['run', 'gen-host-references', '--check'])
+  pnpm(['run', 'gen-tsconfig-paths'])
   pnpm(['run', 'build'])
   pnpm(['run', 'constraints'])
+
+  // Exercise dependency classification through the actual command for both real app entry forms.
+  const dependencyPolicy = join(exported, 'scripts/package-dependency-policy.ts')
+  writeFileSync(dependencyPolicy, readFileSync(dependencyPolicy, 'utf8')
+    + '\nObject.assign(PACKAGE_DEPENDENCY_POLICY.safeHostDependencyExports, { "@template-smoke/statistics": ["mean"] })\n')
+  pnpm(['run', 'verify-package-dependencies'])
+  const applicationBin = join(applicationRoot, 'src/bin.ts')
+  writeFileSync(applicationBin, 'import "bin-runtime-not-declared"\n')
+  const badBin = pnpm(['run', 'verify-package-dependencies'], 1, true)
+  assert.match(badBin.stderr + badBin.stdout, /bin-runtime-not-declared.*dependencies-only/u)
+  writeFileSync(applicationBin, 'import { mean } from "@template-smoke/statistics"\nconsole.log(mean([1]))\n')
+  writeFileSync(applicationEntry, Buffer.concat([applicationSource, Buffer.from('import "index-runtime-not-declared"\n')]))
+  const badIndex = pnpm(['run', 'verify-package-dependencies'], 1, true)
+  assert.match(badIndex.stderr + badIndex.stdout, /index-runtime-not-declared.*dependencies-only/u)
+  writeFileSync(applicationEntry, applicationSource)
+  pnpm(['run', 'verify-package-dependencies'])
+  rmSync(applicationEntry)
+  pnpm(['run', 'verify-package-dependencies'])
+  rmSync(applicationBin)
+  const missingEntry = pnpm(['run', 'verify-package-dependencies'], 1, true)
+  assert.match(missingEntry.stderr + missingEntry.stdout, /Host runtime entry.*src\/index\.ts.*src\/bin\.ts/u)
+  writeFileSync(applicationEntry, applicationSource)
+  pnpm(['run', 'verify-package-dependencies'])
 
   // Consume the actual public artifact, including its error behavior.
   const consumer = join(temporary, 'artifact consumer')

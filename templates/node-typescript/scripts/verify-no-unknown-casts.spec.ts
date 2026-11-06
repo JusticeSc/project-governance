@@ -236,10 +236,24 @@ describe('unknown assertion source discovery', () => {
     expect(verifyNoUnknownCasts(root)).toBe(0)
   })
 
-  it.each(['packages', 'apps', 'scripts'])('rejects discovery missing %s', (area) => {
+  it('allows empty business areas while checking new application and library sources', () => {
     const root = fixture()
-    unlinkSync(join(root, `${area}/seed.ts`))
-    expect(() => verifyNoUnknownCasts(root)).toThrow(`source discovery omitted ${area}/`)
+    unlinkSync(join(root, 'packages/seed.ts'))
+    unlinkSync(join(root, 'apps/seed.ts'))
+    expect(verifyNoUnknownCasts(root)).toBe(0)
+
+    for (const file of ['packages/example/library/src/index.ts', 'apps/example/src/index.ts']) {
+      write(root, file, assertion)
+      expect(() => verifyNoUnknownCasts(root)).toThrow(`${file}:1`)
+      unlinkSync(join(root, file))
+    }
+    expect(verifyNoUnknownCasts(root)).toBe(0)
+  })
+
+  it('rejects discovery missing scripts', () => {
+    const root = fixture()
+    unlinkSync(join(root, 'scripts/seed.ts'))
+    expect(() => verifyNoUnknownCasts(root)).toThrow('source discovery omitted scripts/')
   })
 
   it('rejects an empty source corpus', () => {

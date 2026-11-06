@@ -166,7 +166,12 @@ try {
   const corepack = resolveCorepack(templateNode, templateEnv)
   const sourceStore = run('locate the source template pnpm store', corepack.command, [...corepack.prefix, 'pnpm', 'store', 'path'], join(source, 'templates', 'node-typescript'), 0, 180_000, templateEnv).stdout.trim()
   assert(isAbsolute(sourceStore), 'pnpm store path must return an absolute path')
-  const packedTemplateEnv = { ...env, PNPM_CONFIG_STORE_DIR: sourceStore }
+  // A host-wide ignore rule must not hide the temporary template's TypeScript probes.
+  const globalExcludes = join(temporary, 'host-global-excludes')
+  const globalGitConfig = join(temporary, 'host-git-config')
+  writeFileSync(globalExcludes, '*.ts\n')
+  run('configure isolated global ignore counterexample', 'git', ['config', '--file', globalGitConfig, 'core.excludesFile', globalExcludes], temporary)
+  const packedTemplateEnv = { ...env, PNPM_CONFIG_STORE_DIR: sourceStore, GIT_CONFIG_GLOBAL: globalGitConfig, GIT_CONFIG_NOSYSTEM: '1' }
   run('packed product exports and verifies its independent template', process.execPath, [npm, 'run', 'check:template'], packedRoot, 0, 1_800_000, packedTemplateEnv)
   run('linked pairing command refuses an undeclared consumer corpus', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-translation-pairing', '--repo', target, '--config', 'missing-pairs.json'], packedRoot, 2)
   run('linked subsystem command refuses missing consumer configuration', process.execPath, [npm, 'exec', '--offline', '--yes=false', '--', 'verify-subsystem-pages', '--root', target, '--config', 'missing-subsystems.json'], packedRoot, 2)
