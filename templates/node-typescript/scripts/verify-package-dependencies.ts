@@ -262,13 +262,14 @@ function nodeExportTargets(value: unknown): string[] {
 }
 
 
-/** Discover the Node application's bin or library entry plus every exported Node subpath. */
+/** Discover application source entries or the library entry plus every exported Node subpath. */
 function hostSourceEntries(root: string, pkg: WorkspacePackageManifest): string[] {
-  const entry = resolve(root, pkg.dir, pkg.dir.startsWith('apps/') ? 'src/bin.ts' : 'src/index.ts')
-  if (!existsSync(entry)) {
-    throw new Error(`${pkg.manifestPath}: Host runtime entry ${normalizePath(relative(root, entry))} does not exist`)
+  const candidates = (pkg.dir.startsWith('apps/') ? ['src/index.ts', 'src/bin.ts'] : ['src/index.ts'])
+    .map(entry => resolve(root, pkg.dir, entry))
+  const entries = new Set(candidates.filter(entry => existsSync(entry)))
+  if (entries.size === 0) {
+    throw new Error(`${pkg.manifestPath}: Host runtime entry ${candidates.map(entry => normalizePath(relative(root, entry))).join(' or ')} does not exist`)
   }
-  const entries = new Set([entry])
   const exports = pkg.manifest.exports
   if (exports === null || typeof exports !== 'object') return [...entries]
   for (const [subpath, declaration] of Object.entries(exports as Record<string, unknown>)) {

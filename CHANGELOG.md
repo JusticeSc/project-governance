@@ -2,6 +2,22 @@
 
 English | [中文](CHANGELOG.zh.md)
 
+## Unreleased
+
+## 0.2.1
+
+### Fixed
+
+- Isolate the exported template check from host-wide Git ignore rules so its real source and rejection probes remain visible.
+- The empty Node/TypeScript template can run the unknown-cast check without invented application or library source. Real app and library sources remain covered; the template acquisition check exercises acceptance, rejection and restoration through the actual command.
+- Correct template lint errors and share repeated test-fixture setup, including generator command fixtures that caused the duplication gate to fail, without removing behavior checks.
+- Check runtime dependencies from an application's `src/index.ts` and `src/bin.ts` when either or both are present, without requiring an invented launcher.
+- Document the CLI help manifest required when a new project introduces an executable launcher.
+- Guide the agent to stop before installing on an incompatible target stack; the installer's file-conflict checks do not determine stack compatibility.
+- Generate an absent workspace test TypeScript project from its real member path without overwriting existing configuration.
+- Derive host references for actual workspace members with `pnpm run gen-host-references [--check]`, preserving authored configuration and refusing invalid markers or incomplete members. Before takeover, verify that removing every generated reference still renders a valid array; reject separator ownership that would leave leading or doubled commas without changing authored bytes.
+- Route local development through the existing evidence-selection and semantic-review Skills without requiring a remote. Review the original request for omissions, reconfirm accepted fixes before completion, and consistently require build evidence for completed TypeScript work.
+
 ## 0.2.0
 
 ### Changed

@@ -76,7 +76,7 @@ function isSource(file: string): boolean {
  * Scan tracked source and non-ignored new source, including tests and configuration files.
  * @param repoRoot - repository root containing the Git index.
  * @returns every direct unknown assertion in the current working tree.
- * @throws if discovery omits a required source area or an eligible path is a symlink.
+ * @throws if discovery omits repository scripts or an eligible path is a symlink.
  */
 export function scanUnknownCasts(repoRoot: string): UnknownCast[] {
   requireRepositoryRoot(repoRoot)
@@ -90,10 +90,8 @@ export function scanUnknownCasts(repoRoot: string): UnknownCast[] {
     if (stat?.isSymbolicLink()) throw new Error(`verify-no-unknown-casts: source symlink is unsupported: ${file}`)
     return stat?.isFile() === true
   })
-  for (const area of ['packages/', 'apps/', 'scripts/']) {
-    if (!present.some(file => file.startsWith(area))) {
-      throw new Error(`verify-no-unknown-casts: source discovery omitted ${area}`)
-    }
+  if (!present.some(file => file.startsWith('scripts/'))) {
+    throw new Error('verify-no-unknown-casts: source discovery omitted scripts/')
   }
   return present.flatMap(file => findUnknownCasts(file, readFileSync(resolve(repoRoot, file), 'utf8')))
 }

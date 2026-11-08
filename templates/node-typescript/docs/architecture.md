@@ -8,7 +8,7 @@ This workspace begins without business applications or libraries. The repository
 
 Applications belong under `apps/<app>/`, libraries under `packages/<group>/<package>/`; each owns its source, tests, manifest, and consumer documentation. A group is a container with navigation, not a package. Introduce members for actual responsibilities, not to satisfy an empty layout. Libraries must not depend on applications. [Start a project](cookbook/starting-a-project.md) describes registration and [adding a package](cookbook/adding-a-package.md) describes library details.
 
-The root workspace configuration discovers members; `tsconfig.host.json` references each actual member. The source plane resolves declared workspace imports to `src` via the TypeScript paths map. Built and packed consumers use the declared artifact exports; they do not consume a source subpath. See [development](development.md#typescript-project-layout) for the compiler graph.
+The root workspace configuration discovers members; `pnpm run gen-host-references` derives `tsconfig.host.json` references from actual members and their existing source configs. The source plane resolves declared workspace imports to `src` via the TypeScript paths map. Built and packed consumers use the declared artifact exports; they do not consume a source subpath. See [development](development.md#typescript-project-layout) for the compiler graph and generated-reference ownership.
 
 ## Ownership and evolution
 

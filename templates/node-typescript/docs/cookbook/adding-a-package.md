@@ -22,7 +22,7 @@ packages/<group>/<pkg>/
 
 Choose an existing group when one matches the package's role. A new group is a pure container: no `package.json`, no source files, and packages still sit exactly one level below it; the group gets its own `README.md`/`README.zh.md` pair and a row in [packages/README.md](../../packages/README.md). Its README links the owning `docs/subsystems/*.md` page, or `scripts/project-policy.ts` records a justified no-page classification.
 
-Create `tests/tsconfig.json` extending `../../../../tsconfig.base.json`, with `compilerOptions.noEmit: true`, `include: ["**/*.ts", "**/*.tsx"]`, and `references: [{ "path": ".." }]`. It owns type-aware lint for the package tests; the host aggregate continues checking them, while the package source project still includes only `src`. See the [TypeScript project layout](../development.md#typescript-project-layout).
+After adding real tests, create their type-aware lint project with `pnpm run gen-test-tsconfig packages/<group>/<pkg>`. The host aggregate continues checking those tests, while the package source project still includes only `src`. See the [TypeScript project layout](../development.md#typescript-project-layout) for command prerequisites and existing configs.
 
 `package.json` invariants:
 
@@ -40,7 +40,7 @@ In-package relative imports use explicit `.ts` specifiers in source (for example
 | File | Change |
 |---|---|
 | `tsconfig.base.json` | Run `pnpm run gen-tsconfig-paths`; it maps each declared library to its actual source and preserves handwritten aliases outside the generated region. Do not add group wildcards. |
-| `tsconfig.host.json` | Add `{ "path": "./packages/<group>/<pkg>" }` to `references`. The package belongs to the Node aggregate. |
+| `tsconfig.host.json` | After the package manifest and source config exist, run `pnpm run gen-host-references` to derive actual-member references for the Node aggregate; follow the [TypeScript layout and reference ownership](../development.md#typescript-project-layout). |
 | `scripts/product-use.manifest.json` | State the package's role and reason. Use `product` when a declared entry reaches it through runtime dependencies; otherwise choose `development-only` or `test-support` for its actual use. Run `pnpm run verify-product-use`. |
 | `pnpm-workspace.yaml` | No edit: `packages/*/*` already includes the package. |
 

@@ -22,7 +22,7 @@ packages/<group>/<pkg>/
 
 当现有分组符合包的职责时复用它。新分组是纯容器：没有 `package.json`、没有源文件，包仍恰好位于其下一层；新分组拥有自己的 `README.md`／`README.zh.md` 配对，并在 [packages/README.zh.md](../../packages/README.zh.md) 中增加一行。其 README 链接拥有的 `docs/subsystems/*.md` 页面，或者由 `scripts/project-policy.ts` 记录有理由的无页面分类。
 
-创建 `tests/tsconfig.json`，扩展 `../../../../tsconfig.base.json`，设置 `compilerOptions.noEmit: true`、`include: ["**/*.ts", "**/*.tsx"]` 和 `references: [{ "path": ".." }]`。它拥有包测试的类型感知 lint；host 聚合继续检查这些测试，包源码项目仍只包含 `src`。见 [TypeScript 项目布局](../development.zh.md#typescript-project-layout)。
+加入实际测试后，运行 `pnpm run gen-test-tsconfig packages/<group>/<pkg>` 创建其类型感知 lint 项目。host 聚合继续检查这些测试，包源码项目仍只包含 `src`。命令前提与已有配置的处理见 [TypeScript 项目布局](../development.zh.md#typescript-project-layout)。
 
 `package.json` 不变量：
 
@@ -40,7 +40,7 @@ packages/<group>/<pkg>/
 | 文件 | 修改 |
 |---|---|
 | `tsconfig.base.json` | 运行 `pnpm run gen-tsconfig-paths`，把每个已声明库映射到实际源码，并保全生成区外的手写别名。不添加分组通配符。 |
-| `tsconfig.host.json` | 在 `references` 中增加 `{ "path": "./packages/<group>/<pkg>" }`。该包属于 Node 聚合。 |
+| `tsconfig.host.json` | 包 manifest 与源码配置已存在后，运行 `pnpm run gen-host-references`，为 Node 聚合派生实际成员引用；遵循 [TypeScript 布局与引用归属](../development.zh.md#typescript-project-layout)。 |
 | `scripts/product-use.manifest.json` | 写明包的角色与理由。声明入口通过运行时依赖可达的包使用 `product`；否则按实际用途选择 `development-only` 或 `test-support`。运行 `pnpm run verify-product-use`。 |
 | `pnpm-workspace.yaml` | 无需修改：`packages/*/*` 已包含该包。 |
 

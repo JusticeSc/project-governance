@@ -16,5 +16,9 @@
   "exclude": [
     "scripts/fixtures/**"
   ],
-  "references": []
+  "references": [
+    // BEGIN generated workspace references — pnpm run gen-host-references
+
+    // END generated workspace references
+  ]
 }

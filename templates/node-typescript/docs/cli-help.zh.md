@@ -10,6 +10,7 @@
 
 <!-- END GENERATED cli-help -->
 
+<a id="updating-help"></a>
 ## 更新帮助
 
-新增启动器或修改 CLI 选项或帮助文本后，更新 `scripts/project-policy.ts` 中的声明，运行 `pnpm run gen-cli-help`，再运行 `pnpm run gen-cli-help --check`。生成器调用每个已声明入口的帮助命令；入口失败时必须失败，不能接受空输出。没有入口时，投影记录这一事实，不虚构起步 CLI。两种语言在生成区域保留相同命令输出。通过真实接受与拒绝路径测试变动选项；构建入口行为受影响时另行测试构建入口。
+新增启动器或修改 CLI 选项或帮助文本后，在 `scripts/project-policy.ts` 中分类启动器，并在 `scripts/cli-help.manifest.json` 中声明其实际帮助命令：`id`、源码 `script`、帮助参数 `args`、展示的调用方式 `display` 与 `reason`。运行 `pnpm run gen-cli-help`，再运行 `pnpm run gen-cli-help --check`。生成器调用每个已声明入口的帮助命令；入口失败时必须失败，不能接受空输出。没有入口时，投影记录这一事实，不虚构起步 CLI。两种语言在生成区域保留相同命令输出。通过真实接受与拒绝路径测试变动选项；构建入口行为受影响时另行测试构建入口。

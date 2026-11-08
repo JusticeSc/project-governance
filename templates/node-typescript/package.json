@@ -63,6 +63,8 @@
     "verify-upgrade-guides": "tsx scripts/verify-upgrade-guides.ts",
     "verify-package-dependencies": "tsx scripts/verify-package-dependencies.ts",
     "verify-tsconfig-paths": "tsx scripts/gen-tsconfig-paths.ts --check",
+    "gen-test-tsconfig": "tsx scripts/gen-test-tsconfig.ts",
+    "gen-host-references": "tsx scripts/gen-host-references.ts",
     "gen-tsconfig-paths": "tsx scripts/gen-tsconfig-paths.ts",
     "verify-application-entrypoints": "tsx scripts/verify-application-entrypoints.ts",
     "gen-doc-graphs": "tsx scripts/gen-doc-graphs.ts",

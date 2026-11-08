@@ -8,6 +8,7 @@ import { runGate, type GateResult } from './run-gates.ts'
 import { readWorkspaceManifests } from './check-workspace-constraints.ts'
 
 const root = resolve(import.meta.dirname, '..')
+const hasWorkspaceLibrary = readWorkspaceManifests(root).some(({ dir }) => /^packages\/[^/]+\/[^/]+$/.test(dir))
 
 function copyHygieneFixture(source: string, checkout: string, artifactDirectories: readonly string[]): void {
   const sourceRoot = resolve(source)
@@ -61,6 +62,15 @@ function copyHygieneFixture(source: string, checkout: string, artifactDirectorie
   } finally {
     if (temporaryGit) rmSync(temporaryGit, { recursive: true, force: true })
   }
+}
+
+function createIgnoredTrackedAuthor(source: string): void {
+  const init = spawnSync('git', ['init', '--quiet', '--template=', source], { encoding: 'utf8' })
+  expect(init.status, init.stdout + init.stderr).toBe(0)
+  writeFileSync(join(source, '.gitignore'), '.env\n')
+  writeFileSync(join(source, '.env'), 'synthetic private data\n')
+  const add = spawnSync('git', ['-C', source, 'add', '--force', '.env'], { encoding: 'utf8' })
+  expect(add.status, add.stdout + add.stderr).toBe(0)
 }
 
 describe('plain Node artifact consumers', () => {
@@ -138,12 +148,7 @@ describe('plain Node artifact consumers', () => {
     const source = join(temporary, 'source')
     const checkout = join(temporary, 'checkout')
     mkdirSync(source, { recursive: true })
-    const init = spawnSync('git', ['init', '--quiet', '--template=', source], { encoding: 'utf8' })
-    expect(init.status, init.stdout + init.stderr).toBe(0)
-    writeFileSync(join(source, '.gitignore'), '.env\n')
-    writeFileSync(join(source, '.env'), 'synthetic private data\n')
-    const add = spawnSync('git', ['-C', source, 'add', '--force', '.env'], { encoding: 'utf8' })
-    expect(add.status, add.stdout + add.stderr).toBe(0)
+    createIgnoredTrackedAuthor(source)
 
     expect(() => { copyHygieneFixture(source, checkout, []) }).toThrow(/tracked files.*ignored/iu)
     expect(existsSync(join(checkout, '.env'))).toBe(false)
@@ -159,20 +164,14 @@ describe('plain Node artifact consumers', () => {
     expect(alias.status, alias.stderr).toBe(0)
     const short = alias.stdout.trim()
     if (short.toLowerCase() === source.toLowerCase()) test.skip()
-    const init = spawnSync('git', ['init', '--quiet', '--template=', source], { encoding: 'utf8' })
-    expect(init.status, init.stdout + init.stderr).toBe(0)
-    writeFileSync(join(source, '.gitignore'), '.env\n')
-    writeFileSync(join(source, '.env'), 'synthetic private data\n')
-    const add = spawnSync('git', ['-C', source, 'add', '--force', '.env'], { encoding: 'utf8' })
-    expect(add.status, add.stdout + add.stderr).toBe(0)
+    createIgnoredTrackedAuthor(source)
 
     expect(() => { copyHygieneFixture(short, checkout, []) }).toThrow(/tracked files.*ignored/iu)
     expect(existsSync(join(checkout, '.env'))).toBe(false)
   })
 
 
-  it.skipIf(!readWorkspaceManifests(root).some(({ dir }) => /^packages\/[^/]+\/[^/]+$/.test(dir)))(
-    'rejects a missing published artifact through hygiene and accepts its exact restoration', async ({ signal }) => {
+  it.skipIf(!hasWorkspaceLibrary)('rejects a missing published artifact through hygiene and accepts its exact restoration', async ({ signal }) => {
     const temporary = mkdtempSync(join(tmpdir(), 'built-hygiene-'))
     const checkout = join(temporary, 'checkout')
     const dependencyLink = join(checkout, 'node_modules')

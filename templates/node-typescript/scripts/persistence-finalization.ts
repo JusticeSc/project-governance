@@ -146,7 +146,7 @@ export function loadPersistenceFinalization(root: string, history: Pick<Persiste
       if (recordId === latest) latestAccepted = followed
       const tip = entries.get(recordId)?.snapshot.roots.find(item => item.key === folder)
       if (tip === undefined || tip.digest !== checkpoint.digest || versionOf(tip) !== checkpoint.version) throw new Error(`${file}: finalized root does not match accepted history`)
-      if (checkpoint.version !== null) versions.set(folder, Math.max(versions.get(folder) ?? 0, checkpoint.version as number))
+      if (checkpoint.version !== null) versions.set(folder, Math.max(versions.get(folder) ?? 0, checkpoint.version))
     }
     if (latestAccepted === undefined) throw new Error(`${folder}: latest status is missing`)
     const accepted = latestAccepted

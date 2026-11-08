@@ -65,6 +65,30 @@ describe('Node source import classification', () => {
     expect(discoverPackageDependencyScope(value.packages, policy).selected).toHaveLength(2)
     expect(value.facts.map(fact => fact.manifest.name)).toEqual(['@f/tool', '@f/library'])
   })
+  it('checks runtime dependencies for index and bin application entries', async () => {
+    const root = fixture({
+      'apps/tool/package.json': { name: '@f/tool', dependencies: { 'index-runtime': '^1.0.0' } },
+      'apps/tool/src/index.ts': "import 'index-runtime'\n",
+    })
+    expect(collectPackageDependencyViolations(await readPackageDependencyState(root, policy))).toEqual([])
+
+    const manifestPath = join(root, 'apps/tool/package.json')
+    writeFileSync(join(root, 'apps/tool/src/bin.ts'), "import 'bin-runtime'\n")
+    writeFileSync(manifestPath, JSON.stringify({
+      name: '@f/tool', dependencies: { 'index-runtime': '^1.0.0' }, devDependencies: { 'bin-runtime': '^1.0.0' },
+    }))
+    expect(collectPackageDependencyViolations(await readPackageDependencyState(root, policy)))
+      .toEqual([expect.stringContaining('bin-runtime (apps/tool/src/bin.ts) must be dependencies-only')])
+
+    writeFileSync(manifestPath, JSON.stringify({
+      name: '@f/tool', dependencies: { 'index-runtime': '^1.0.0', 'bin-runtime': '^1.0.0' },
+    }))
+    expect(collectPackageDependencyViolations(await readPackageDependencyState(root, policy))).toEqual([])
+    rmSync(join(root, 'apps/tool/src/index.ts'))
+    expect(collectPackageDependencyViolations(await readPackageDependencyState(root, policy))).toEqual([])
+    rmSync(join(root, 'apps/tool/src/bin.ts'))
+    await expect(readPackageDependencyState(root, policy)).rejects.toThrow('Host runtime entry')
+  })
   it('rejects a missing declaration, then accepts exact recovery', async () => {
     const { root, value } = await state()
     expect(collectPackageDependencyViolations(value)).toEqual(expect.arrayContaining([
