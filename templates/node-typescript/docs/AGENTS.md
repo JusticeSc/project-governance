@@ -1,6 +1,6 @@
 # AGENTS.md — The documentation standard
 
-This file defines document structure, Markdown tiers, writing rules, and `verify-doc-budgets` ceilings. Use [dsh-doc](../.agents/skills/dsh-doc/SKILL.md) for placement and validation and [dsh-prose-standard](../.agents/skills/dsh-prose-standard/SKILL.md) for required coverage and editorial judgment.
+This file defines document structure, Markdown tiers, writing rules, and `verify-doc-budgets` ceilings. Use [pg-doc](../.agents/skills/pg-doc/SKILL.md) for placement and validation and [pg-prose-standard](../.agents/skills/pg-prose-standard/SKILL.md) for required coverage and editorial judgment.
 
 ## Document structure
 
@@ -28,7 +28,7 @@ Each fact has one home: the tier whose job it is; elsewhere, link there.
 | [cookbook/](cookbook/adding-a-package.md) | Step-by-step how-tos with numbered verify steps | Design rationale (→ the Agent Note each guide links) |
 | Package README | The per-package contract: purpose, API, side effects, limitations, and how to verify | JSDoc restatement, another package's concerns |
 | [development.md](development.md) | Contributor setup, daily workflow, TypeScript layout, and check selection; a bilingual pair under the [i18n contract](i18n/README.md) | Runtime/version rationale (→ Agent Notes), gate-by-gate lists that drift from `package.json` scripts |
-| [Upgrade guides](../.agents/skills/dsh-create-upgrade-guide/SKILL.md) | Release-to-release reader actions for externally observable breaks | Current API reference, internal-only changes, or fabricated migration history |
+| [Upgrade guides](../.agents/skills/pg-create-upgrade-guide/SKILL.md) | Release-to-release reader actions for externally observable breaks | Current API reference, internal-only changes, or fabricated migration history |
 | Skills (`.agents/skills/`) | Reusable workflows and specialized decision standards | Product and runtime contracts (→ docs or source) |
 
 Placement: bugs → post-mortems; rationale → Agent Notes; procedures → cookbooks; package contracts → READMEs; standing orders → root `AGENTS.md` with a rationale link; review-enforced rules → `defensive-patterns/`.
@@ -40,8 +40,8 @@ Placement: bugs → post-mortems; rationale → Agent Notes; procedures → cook
 - **One physical line per paragraph** (`verify-md-wrap`): use editor soft-wrap. Code blocks, tables, and list structure keep their formatting; code comments stay under the linter's column limit.
 - **Fenced `ts` examples compile.** Mark a verbatim source declaration and its original JSDoc as `ts type-equiv`; a body-stripped public class is `ts public-api`. Register either in `scripts/type-equiv.manifest.json` and follow [the projection workflow](development.md#documenting-source-contracts). An unchecked illustration uses `ts ignore-check`, not an unmarked pseudo-contract.
 - **Pairs update together**: apply [translation rules](i18n/translation-rules.md) to both sides, re-record with `pnpm run verify-translation-pairing --write <pair>`, and preserve intentional untouched prose ([contract](i18n/README.md)).
-- **Comments and JSDoc state complete contracts, not reasoning transcripts.** Preserve behavior, failure, timing, ownership, modality, exceptions, consequences, and non-obvious orientation; delete narration, test walkthroughs, review analysis, and code restatement. Keep the local contract and link its rationale. Use [dsh-prose-standard](../.agents/skills/dsh-prose-standard/SKILL.md) for details.
-- Write directly: name actors and facts ([reference](../.agents/skills/dsh-prose-standard/SKILL.md)). Name the exact check, type, API, operation, or behavior instead of metaphorical "gate", "vocabulary", or "surface".
+- **Comments and JSDoc state complete contracts, not reasoning transcripts.** Preserve behavior, failure, timing, ownership, modality, exceptions, consequences, and non-obvious orientation; delete narration, test walkthroughs, review analysis, and code restatement. Keep the local contract and link its rationale. Use [pg-prose-standard](../.agents/skills/pg-prose-standard/SKILL.md) for details.
+- Write directly: name actors and facts ([reference](../.agents/skills/pg-prose-standard/SKILL.md)). Name the exact check, type, API, operation, or behavior instead of metaphorical "gate", "vocabulary", or "surface".
 - **Source plane and artifact plane are different reader contracts.** Development documents must say when commands or imports resolve TypeScript source through the root `paths` map, and when consumers use declared built exports. Do not publish a source subpath as a workaround.
 - **Documented types update with source.** Update the declaring package group's owning subsystem page in the same change. `verify-type-equiv` catches drift in registered pastes, not missing documentation for a new type; `verify-subsystem-pages` checks ownership, not semantic completeness.
 
@@ -59,7 +59,7 @@ Ceilings are guardrails, not reduction targets. At or below target, retain at le
 
 ## The slop checklist
 
-Hunt these in any doc; [dsh-doc](../.agents/skills/dsh-doc/SKILL.md) runs this list as an audit:
+Hunt these in any doc; [pg-doc](../.agents/skills/pg-doc/SKILL.md) runs this list as an audit:
 
 - Duplicated rules: search a distinctive phrase; keep one home and link the rest.
 - History outside its permitted tier: state current facts and link the historical owner.

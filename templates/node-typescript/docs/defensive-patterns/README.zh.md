@@ -20,4 +20,4 @@
 | 包导出、包形态、构建面、依赖声明 | [packages/AGENTS.md](../../packages/AGENTS.md) 与[开发指南](../development.zh.md#typescript-project-layout) |
 | UI 身份、共享控件、样式、远程合同、恢复、派生 projection 或显示资源 | [conditional-domains.md](conditional-domains.zh.md)；仅激活实际对象对应的规则 |
 
-[dsh-code-review](../../.agents/skills/dsh-code-review/SKILL.md) 在审查 pull request 时阅读本目录，根 [AGENTS.md](../../AGENTS.md) 将变更路由到这里。
+[pg-code-review](../../.agents/skills/pg-code-review/SKILL.md) 在审查 pull request 时阅读本目录，根 [AGENTS.md](../../AGENTS.md) 将变更路由到这里。

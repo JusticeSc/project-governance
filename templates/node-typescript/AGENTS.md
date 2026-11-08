@@ -79,7 +79,7 @@ Never commit credentials or a populated `.env`. Introduce and document credentia
 - **Tests live under the owning package's `tests/`,** never `src/__tests__/`; `src/types.ts` contains types only.
 - **Package tsconfigs** extend `tsconfig.base.json`, set `rootDir: src` and `outDir: lib/types`, and reference workspace dependencies. The root `tsconfig.json` is the aggregate solution.
 - **TODO markers:** `FIXME` (release blocker), `TODO` (soon), `XXX` (someday), by urgency.
-- **Review:** follow [.github/review-ownership/README.md](.github/review-ownership/README.md) for approval ownership. It is inherited configuration; this checkout has not exercised it against a remote.
+- **Review local changes and PRs** with [pg-code-review](.agents/skills/pg-code-review/SKILL.md), using the original request and actual change scope. Select missing evidence through [pg-pre-push-checks](.agents/skills/pg-pre-push-checks/SKILL.md). PR approval ownership separately follows [.github/review-ownership/README.md](.github/review-ownership/README.md); inherited configuration does not prove remote enforcement.
 
 ## Defensive patterns
 
@@ -91,7 +91,7 @@ Everything compiles under `strict: true`. Every remaining `any` explains why nar
 
 Comments and docs state complete contracts rather than reasoning transcripts. Name exact rules, fields, errors, and operations; avoid metaphor. Docs accompany code: update the owning README, JSDoc, and bilingual counterpart in the same change. Routine translation follows [docs/AGENTS.md](docs/AGENTS.md); record an edited pair with `pnpm run verify-translation-pairing --write <pair>`.
 
-For externally observable CLI, data-format or published API breaks, or changes to a surface covered by an unreleased guide, follow [dsh-create-upgrade-guide](.agents/skills/dsh-create-upgrade-guide/SKILL.md) in the same change.
+For externally observable CLI, data-format or published API breaks, or changes to a surface covered by an unreleased guide, follow [pg-create-upgrade-guide](.agents/skills/pg-create-upgrade-guide/SKILL.md) in the same change.
 
 For browser UI, remote APIs, shared resources or derived persistent views, read [conditional domain rules](docs/defensive-patterns/conditional-domains.md) and the [testing evidence boundaries](docs/testing.md#conditional-evidence). These rules activate on real objects; they do not require a plugin host, model runtime or Session architecture.
 

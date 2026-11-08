@@ -17,7 +17,7 @@ Fixtures that copy a project tree select it through `scripts/workspace-fixture.t
 
 ## How specs execute
 
-Vitest runs several spec files at once in forked workers, and the coverage gate splits into partitions beside other gate processes. Only the process is isolated: ports, predictable paths, temporary files, Git repositories and inherited children are not, so own every resource you acquire through teardown. A spec that passes only when run alone is a defect in the spec, not an unstable runner. [dsh-ci-test-reliability](../.agents/skills/dsh-ci-test-reliability/SKILL.md) owns the allocation, restoration, synchronization, timeout-budget, platform and teardown rules, and its [flake diagnosis workflow](../.agents/skills/dsh-ci-test-reliability/references/ci-flake-diagnosis.md) classifies an existing failure.
+Vitest runs several spec files at once in forked workers, and the coverage gate splits into partitions beside other gate processes. Only the process is isolated: ports, predictable paths, temporary files, Git repositories and inherited children are not, so own every resource you acquire through teardown. A spec that passes only when run alone is a defect in the spec, not an unstable runner. [pg-ci-test-reliability](../.agents/skills/pg-ci-test-reliability/SKILL.md) owns the allocation, restoration, synchronization, timeout-budget, platform and teardown rules, and its [flake diagnosis workflow](../.agents/skills/pg-ci-test-reliability/references/ci-flake-diagnosis.md) classifies an existing failure.
 
 ## Prefer the real implementation over a mock
 

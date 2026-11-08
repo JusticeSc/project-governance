@@ -18,8 +18,8 @@
   en: f0cd5435878a621d
   zh: 5d1f1646fac4b27f
 /development-guide/setup-tutorial/daily-workflow:
-  en: 8d66e431eb68bd57
-  zh: 04b4fae86b27939c
+  en: 8389dbdb356d3060
+  zh: 35a4a10439ec1332
 /development-guide/contributor-reference:
   en: 3221d1076554001f
   zh: c84462aaf62749f0
@@ -27,14 +27,14 @@
   en: a07467834cb5e9b8
   zh: 7cac5195ec157cc5
 /development-guide/contributor-reference/typescript-project-layout:
-  en: a981b59c49ca8648
-  zh: 83fffd22d49a3cad
+  en: 376ceda5148fef8b
+  zh: 2b2990dad3379a61
 /development-guide/contributor-reference/source-plane-and-packed-artifact-plane:
   en: 0db88800f8c1179d
   zh: 8e867fccd79005a3
 /development-guide/contributor-reference/verify-a-change:
-  en: 37ae8a4712584f61
-  zh: ff6a298ed04b8eae
+  en: ec5347b342a8fef2
+  zh: 6c2d90c4851e59e0
 /development-guide/contributor-reference/git-integrations:
   en: 14f1d94c7f07a281
   zh: cd3c7c158deea300

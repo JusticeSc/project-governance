@@ -20,4 +20,4 @@ Five habits cover most of what follows, and each page is their application to on
 | Package exports, package shape, build faces, dependency declarations | [packages/AGENTS.md](../../packages/AGENTS.md) and [development.md](../development.md#typescript-project-layout) |
 | UI identity, shared controls, styling, remote contracts, recovery, derived projections or display resources | [conditional-domains.md](conditional-domains.md); activate only the rules whose objects exist |
 
-[dsh-code-review](../../.agents/skills/dsh-code-review/SKILL.md) reads this directory when judging a pull request, and the root [AGENTS.md](../../AGENTS.md) routes changes here.
+[pg-code-review](../../.agents/skills/pg-code-review/SKILL.md) reads this directory when judging a pull request, and the root [AGENTS.md](../../AGENTS.md) routes changes here.

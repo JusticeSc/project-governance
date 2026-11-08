@@ -48,8 +48,8 @@ pnpm 使用严格符号链接布局，未声明的依赖会失败，而不会通
 
 1. 阅读所属领域的文档：[架构](architecture.zh.md)说明 workspace 边界，包或应用 README 说明其合同，[防御性模式](defensive-patterns/README.zh.md)说明生成与输出规则，[文档标准](AGENTS.md)说明文字要求。
 2. 一次只做一个行为变更，并在同一变更中更新其消费方、测试与文档。
-3. 运行覆盖该变更的最小检查（见[验证变更](#verify-a-change)）。
-4. 请求审查前，运行缺失的证据一次，并报告实际运行过的命令。
+3. 通过 [pg-pre-push-checks](../.agents/skills/pg-pre-push-checks/SKILL.md)选择缺失证据，运行覆盖变更的最小检查（见[验证变更](#verify-a-change)）。本地任务使用已核实的本地基线，不要求远端或推送。
+4. 使用 [pg-code-review](../.agents/skills/pg-code-review/SKILL.md)审查实际变更，包括仅本地工作。从原需求反查遗漏，从实际变更检查无依据新增；报告实际取得的证据。
 
 ## 贡献者参考
 

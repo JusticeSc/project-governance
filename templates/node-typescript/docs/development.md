@@ -46,8 +46,8 @@ Local setup is complete when hooks are installed and `pnpm run typecheck` succee
 
 1. Read the owning document for the area: [architecture](architecture.md) for workspace boundaries, the package or app README for its contract, [defensive patterns](defensive-patterns/README.md) for generation and output rules, and [the documentation standard](AGENTS.md) for prose.
 2. Make one behavior change and update its consumers, tests, and documents in the same change.
-3. Run the smallest checks that cover the change (see [Verify a change](#verify-a-change)).
-4. Before requesting review, run the missing evidence once and report the commands actually run.
+3. Select missing evidence through [pg-pre-push-checks](../.agents/skills/pg-pre-push-checks/SKILL.md), then run the smallest checks that cover the change (see [Verify a change](#verify-a-change)). A local task uses its verified local baseline; no remote or push is required.
+4. Have the actual change reviewed with [pg-code-review](../.agents/skills/pg-code-review/SKILL.md), including local-only work. Review the original requirements for omissions and the actual changes for unrequested additions; report the evidence actually obtained.
 
 ## Contributor reference
 
