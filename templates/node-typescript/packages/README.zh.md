@@ -31,7 +31,7 @@ kind: "package-group"
 <a id="release-expectations"></a>
 ## 发布预期
 
-包的 manifest 声明其发布意图。库遵循仓库的发布规则；应用为 private。合同变化时同步更新所有仓库内消费方；外部可感知的破坏在触发条件成立时遵循[升级指南工作流](../.agents/skills/dsh-create-upgrade-guide/SKILL.md)。发布版本及 registry 发布需要各自的授权与证据。
+包的 manifest 声明其发布意图。库遵循仓库的 publication rules；应用为 private。合同变化时同步更新所有仓库内消费方；外部可感知的破坏在触发条件成立时遵循[升级指南工作流](../.agents/skills/pg-create-upgrade-guide/SKILL.md)。发布版本及 registry 发布需要各自的授权和证据。
 
 -----
 

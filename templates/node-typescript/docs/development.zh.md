@@ -48,8 +48,8 @@ pnpm 使用严格符号链接布局，未声明的依赖会失败，而不会通
 
 1. 从当前任务或其既有 owner 确定请求行为、验收条件和需要保持的内容。阅读[架构](architecture.zh.md)、所属包或应用合同，以及适用的[防御性模式](defensive-patterns/README.zh.md)和[文档标准](AGENTS.md)。
 2. 一次只做一个行为变更，并在同一变更中更新其消费方、测试与文档。
-3. 通过 [dsh-pre-push-checks](../.agents/skills/dsh-pre-push-checks/SKILL.md)选择缺失证据，运行覆盖变更的最小检查（见[验证变更](#verify-a-change)）。本地任务使用已核实的本地基线，不要求远端或推送。
-4. 使用 [dsh-code-review](../.agents/skills/dsh-code-review/SKILL.md)审查实际变更，包括仅本地工作。从原需求反查遗漏，从实际变更检查无依据新增；报告实际取得的证据。
+3. 通过 [pg-pre-push-checks](../.agents/skills/pg-pre-push-checks/SKILL.md)选择缺失证据，运行覆盖变更的最小检查（见[验证变更](#verify-a-change)）。本地任务使用已核实的本地基线，不要求远端或推送。
+4. 使用 [pg-code-review](../.agents/skills/pg-code-review/SKILL.md)审查实际变更，包括仅本地工作。从原需求反查遗漏，从实际变更检查无依据新增；报告实际取得的证据。
 5. 解决阻断发现，或说明缺失前提及安全的当前状态。修正后只补受影响的证据，并重新确认审查发现已解决，再报告完成；保留原始失败及其处置。
 
 ## 贡献者参考

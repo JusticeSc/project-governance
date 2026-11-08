@@ -46,8 +46,8 @@ Local setup is complete when hooks are installed and `pnpm run typecheck` succee
 
 1. Establish the requested behavior, acceptance conditions and content to preserve from the current task or its existing owner. Read [architecture](architecture.md), the package or app contract, and the applicable [defensive patterns](defensive-patterns/README.md) and [documentation standard](AGENTS.md).
 2. Make one behavior change and update its consumers, tests and documents in the same change.
-3. Select missing evidence through [dsh-pre-push-checks](../.agents/skills/dsh-pre-push-checks/SKILL.md), then run the smallest checks that cover the change (see [Verify a change](#verify-a-change)). A local task uses its verified local baseline; no remote or push is required.
-4. Have the actual change reviewed with [dsh-code-review](../.agents/skills/dsh-code-review/SKILL.md), including local-only work. Review the original requirements for omissions and the actual changes for unrequested additions; report the evidence actually obtained.
+3. Select missing evidence through [pg-pre-push-checks](../.agents/skills/pg-pre-push-checks/SKILL.md), then run the smallest checks that cover the change (see [Verify a change](#verify-a-change)). A local task uses its verified local baseline; no remote or push is required.
+4. Have the actual change reviewed with [pg-code-review](../.agents/skills/pg-code-review/SKILL.md), including local-only work. Review the original requirements for omissions and the actual changes for unrequested additions; report the evidence actually obtained.
 5. Resolve blocking findings or report the unmet prerequisite and safe current state. After corrections, rerun only affected evidence and reconfirm the review finding before reporting completion; preserve the original failure and its disposition.
 
 ## Contributor reference

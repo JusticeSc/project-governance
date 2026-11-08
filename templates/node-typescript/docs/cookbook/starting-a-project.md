@@ -26,7 +26,7 @@ When the project has persistent data, identify its real exported types and reade
 
 No configuration and no history means no declared roots; existing history without configuration fails. For the first actual nonempty inventory, author a JSON prose file with `en` and `zh` each supplying summary, compatibility and verification, then run `pnpm exec tsx scripts/persistence-changes.ts --baseline <YYYY-MM-DD-slug> --prose <file>`. Review the generated bilingual baseline and schemas; do not pre-create empty history or an empty baseline. After the last root is retired, retain `roots: []` and its history: deletion still requires acknowledgement and frozen-history checks, not a skip. Inspect the command's current options for subsequent changes.
 
-Use the [persistence-change template](../../.agents/skills/dsh-doc/templates/persistence-change.md) and the tool's current command options; never invent prior history or migration success. Structural records do not prove runtime readers, migration, or historical data are compatible: exercise those real behaviors separately. Preserve existing data and accepted history.
+Use the [persistence-change template](../../.agents/skills/pg-doc/templates/persistence-change.md) and the tool's current command options; never invent prior history or migration success. Structural records do not prove runtime readers, migration, or historical data are compatible: exercise those real behaviors separately. Preserve existing data and accepted history.
 
 ## 4. Verify and hand off
 

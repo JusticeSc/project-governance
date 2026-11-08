@@ -17,7 +17,7 @@
 
 ## spec 如何执行
 
-Vitest 在 fork 的 worker 中同时运行多个 spec 文件，覆盖率门禁会与其他门禁进程一起拆分为分区。只有进程被隔离：端口、可预测路径、临时文件、Git 仓库与继承的子进程都没有，所以获取的资源都要在 teardown 中释放。只有单独运行才通过的 spec 是 spec 的缺陷，而不是 runner 不稳定。[dsh-ci-test-reliability](../.agents/skills/dsh-ci-test-reliability/SKILL.md) 拥有分配、恢复、同步、超时预算、平台与 teardown 规则，其[抖动诊断流程](../.agents/skills/dsh-ci-test-reliability/references/ci-flake-diagnosis.md)对既有失败进行分类。
+Vitest 在 fork 的 worker 中同时运行多个 spec 文件，覆盖率门禁会与其他门禁进程一起拆分为分区。只有进程被隔离：端口、可预测路径、临时文件、Git 仓库与继承的子进程都没有，所以获取的资源都要在 teardown 中释放。只有单独运行才通过的 spec 是 spec 的缺陷，而不是 runner 不稳定。[pg-ci-test-reliability](../.agents/skills/pg-ci-test-reliability/SKILL.md) 拥有分配、恢复、同步、超时预算、平台与 teardown 规则，其[抖动诊断流程](../.agents/skills/pg-ci-test-reliability/references/ci-flake-diagnosis.md)对既有失败进行分类。
 
 ## 优先使用真实实现而非 mock
 

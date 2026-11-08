@@ -50,7 +50,7 @@ try {
   assert(packed.files.some(file => file.path === 'templates/node-typescript/lefthook.yml'), 'The template hook configuration must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/gitignore'), 'The npm-safe ignore source must travel in the actual tarball')
   assert(packed.files.some(file => file.path === 'templates/node-typescript/scripts/run-gates.ts'), 'Template governance scripts must travel in the actual tarball')
-  assert(packed.files.some(file => file.path === 'templates/node-typescript/.agents/skills/dsh-code-review/SKILL.md'), 'The template workflow guidance must travel in the actual tarball')
+  assert(packed.files.some(file => file.path === 'templates/node-typescript/.agents/skills/pg-code-review/SKILL.md'), 'The template workflow guidance must travel in the actual tarball')
   assert(!packed.files.some(file => file.path.startsWith('templates/node-typescript/.claude/')), 'Template local Claude settings must not enter the actual tarball')
   for (const file of packed.files) {
     assert(!/(^|\/)(?:node_modules|\.git|_working|research|knowledge|runs|__pycache__)(?:\/|$)/u.test(file.path), 'Private/history/dependency payload: ' + file.path)
@@ -142,7 +142,7 @@ try {
     GIT_CONFIG_NOSYSTEM: '1',
   }
   run('initialize owned ignore-rule consumer', 'git', ['init'], ignoreFixture, 0, 30_000, gitEnv)
-  const ignoredPaths = ['.agents/skills/dsh-code-review/agents/openai.yaml', '.github/review-ownership/__pycache__/probe.pyc']
+  const ignoredPaths = ['.agents/skills/pg-code-review/agents/openai.yaml', '.github/review-ownership/__pycache__/probe.pyc']
   for (const path of ignoredPaths) {
     mkdirSync(join(ignoreFixture, dirname(path)), { recursive: true })
     writeFileSync(join(ignoreFixture, path), 'owned ignore-rule probe\n')

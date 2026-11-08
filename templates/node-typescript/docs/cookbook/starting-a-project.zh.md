@@ -27,7 +27,7 @@ Node 依赖检查将应用的 `src/index.ts` 与 `src/bin.ts` 作为运行时入
 
 没有配置且没有历史表示没有声明根；已有历史却没有配置时失败。首次登记实际非空库存时，编写 JSON 说明文件，由 `en` 和 `zh` 分别提供 summary、compatibility 和 verification，然后运行 `pnpm exec tsx scripts/persistence-changes.ts --baseline <YYYY-MM-DD-slug> --prose <file>`。审阅生成的双语基线和 schema；不预先创建空历史或空基线。最后一个根退出后，保留 `roots: []` 及其历史：删除仍须确认并检查冻结历史，不是跳过。后续变更查阅命令当前选项。
 
-使用[持久化变更模板](../../.agents/skills/dsh-doc/templates/persistence-change.md)和工具当前的命令选项；不能虚构历史或迁移成功。结构记录不能证明运行时读取、迁移或历史数据兼容：须另行验证真实行为。保护已有数据和已接受历史。
+使用[持久化变更模板](../../.agents/skills/pg-doc/templates/persistence-change.md)和工具当前的命令选项；不能虚构历史或迁移成功。结构记录不能证明运行时读取、迁移或历史数据兼容：须另行验证真实行为。保护已有数据和已接受历史。
 
 ## 4. 验证与交接
 

@@ -31,7 +31,7 @@ Every package lives in exactly one group. Reuse a group when its role fits; a ne
 <a id="release-expectations"></a>
 ## Release expectations
 
-A package's manifest declares its publication intent. Libraries follow the repository's publication rules; applications are private. Update all in-repository consumers with a changed contract; externally observable breaks follow the [upgrade-guide workflow](../.agents/skills/dsh-create-upgrade-guide/SKILL.md) when its conditions apply. Release and registry publication require their own authorization and evidence.
+A package's manifest declares its publication intent. Libraries follow the repository's publication rules; applications are private. Update all in-repository consumers with a changed contract; externally observable breaks follow the [upgrade-guide workflow](../.agents/skills/pg-create-upgrade-guide/SKILL.md) when its conditions apply. Release and registry publication require their own authorization and evidence.
 
 -----
 

@@ -144,7 +144,7 @@ try {
     '.oxlintrc.json',
     'vitest.config.ts',
     '.github/workflows/ci.yml',
-    '.agents/skills/dsh-code-review/SKILL.md',
+    '.agents/skills/pg-code-review/SKILL.md',
     'scripts/run-gates.ts',
   ]) {
     assert(payload.includes(required), `the payload is missing an expected file: ${required}`)

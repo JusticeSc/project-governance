@@ -126,7 +126,7 @@ describe('distribution selection', () => {
   it('distributes project skills without agent-local settings or links', () => {
     const source = createProductFixture(makeBase())
     const files = packageFiles(source)
-    assert.ok(files.includes('templates/node-typescript/.agents/skills/dsh-doc/SKILL.md'))
+    assert.ok(files.includes('templates/node-typescript/.agents/skills/pg-doc/SKILL.md'))
     assert.ok(!files.some(file => file.startsWith('templates/node-typescript/.claude/')))
   })
 
@@ -146,8 +146,8 @@ describe('distribution selection', () => {
     assert.equal(child.status, 0, `${child.stdout}\n${child.stderr}`)
     assert.equal(existsSync(join(destination, '.claude/skills')), false)
     assert.equal(
-      readFileSync(join(destination, '.agents/skills/dsh-doc/SKILL.md'), 'utf8'),
-      readFileSync(join(source, 'templates/node-typescript/.agents/skills/dsh-doc/SKILL.md'), 'utf8'),
+      readFileSync(join(destination, '.agents/skills/pg-doc/SKILL.md'), 'utf8'),
+      readFileSync(join(source, 'templates/node-typescript/.agents/skills/pg-doc/SKILL.md'), 'utf8'),
     )
     assert.equal(existsSync(join(destination, '.claude/settings.json')), false)
     assert.equal(existsSync(join(destination, '.claude/settings.local.json')), false)
